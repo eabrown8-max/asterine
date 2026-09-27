@@ -222,6 +222,7 @@ h2.peach::before{background:var(--peach)}
 .gate p{margin:0 0 12px;line-height:1.5}
 .gate .lede{color:var(--soft);font-size:14.5px}
 .gate label.code{display:block;font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:18px 0 6px}
+.gate #gateName{width:100%;font-size:17px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink)}
 .gate .codewrap{position:relative}
 .gate .codewrap input{width:100%;font-size:18px;padding:11px 74px 11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);letter-spacing:.08em}
 .gate .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:1px solid var(--line);background:var(--surface);color:var(--soft);border-radius:6px;padding:5px 9px;font-size:12.5px;font-weight:600}
@@ -251,6 +252,8 @@ h2.peach::before{background:var(--peach)}
     <p class="eyebrow" id="gateBrand"></p>
     <h1 id="gateTitle"></h1>
     <p class="lede"><i>See the art in your teaching.</i> A secure, invite-only platform for instructional analysis.</p>
+    <label class="code" for="gateName">Your name</label>
+    <input type="text" id="gateName" autocomplete="name" autocapitalize="words" spellcheck="false" placeholder="First and last name">
     <label class="code" for="gateCode">Access code</label>
     <div class="codewrap"><input type="password" id="gateCode" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false"><button type="button" class="eye" id="gateEye" aria-label="Show the code">Show</button></div>
     <div class="terms"><span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Local-First Privacy Guarantee</span>
@@ -270,7 +273,7 @@ h2.peach::before{background:var(--peach)}
         <p><b>3. Termination.</b> The Owner may end your access at any time, for any reason, without notice. Your confidentiality and ownership obligations survive the end of your access.</p>
       </details>
     </div>
-    <label class="agree"><input type="checkbox" id="gateAgree"> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms.</span></label>
+    <label class="agree"><input type="checkbox" id="gateAgree"> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms. My agreement is recorded under my name, in this browser, and noted on the files I export.</span></label>
     <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter application</button><span class="err" id="gateErr"></span></div>
     <p class="fine" id="gateLegal"></p>
   </form>
@@ -426,6 +429,8 @@ const OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
 const YEAR='2026';
 const STAGE='Private Beta';
 const COPYRIGHT=`\u00a9 ${YEAR} ${OWNER}. All rights reserved. ${APP}\u2122 and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
+function agreement(){ try{ const a=JSON.parse(localStorage.getItem('cm-beta-agreement')||'null'); if(a&&a.name) return a; }catch(e){} return null; }
+function agreementLine(){ const a=agreement(); return a ? `Prepared by ${a.name} · beta terms accepted ${new Date(a.when).toLocaleDateString()}` : ''; }
 const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
 const TAGLINE='See the art in your teaching.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
@@ -495,11 +500,13 @@ const sample = () => ({
   $('#gateGo').addEventListener('click', e=>{ e.preventDefault(); $('#gateForm').requestSubmit ? $('#gateForm').requestSubmit() : $('#gateForm').dispatchEvent(new Event('submit',{cancelable:true})); });
   $('#gateForm').addEventListener('submit', async e=>{
     e.preventDefault(); const code=$('#gateCode').value.trim().toLowerCase(); const err=$('#gateErr'); err.textContent='';
+    const name=$('#gateName').value.trim().replace(/\s+/g,' ');
+    if(name.length<3){ err.textContent='Enter your name - the agreement is recorded under it.'; $('#gateName').focus(); return; }
     if(!code){ err.textContent='Enter the access code you were given.'; $('#gateCode').focus(); return; }
     if(!$('#gateAgree').checked){ err.textContent='Tick the agreement box to continue.'; $('#gateAgree').focus(); return; }
     let h=''; try{ h=await sha(code); }catch(x){ err.textContent='This browser could not check the code. Try again, or use a different browser.'; return; }
     if(h!==GATE_HASH){ err.textContent='That code is not right. Check with the person who invited you.'; $('#gateCode').select(); return; }
-    try{ localStorage.setItem('cm-beta-ok','1'); }catch(x){}
+    try{ localStorage.setItem('cm-beta-ok','1'); localStorage.setItem('cm-beta-agreement', JSON.stringify({name, when:new Date().toISOString(), app:APP, terms:'Private Beta Confidentiality & Privacy Terms'})); }catch(x){}
     g.hidden=true; $('#app').hidden=false;
   });
 })();
@@ -965,11 +972,11 @@ function exportHtml(){
 <style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
 <p class="eyebrow">${esc(BRAND)} · ${esc(APP)}</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
 <div class="grid"><div class="card">${lines||'<p>No lines.</p>'}</div>
-<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}</p></div></body></html>`;
+<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div></body></html>`;
 }
 function exportTxt(){
   const rows=tallyRows();
-  const head=[(state.title||'Transcript'), APP+'\u2122 - '+BRAND, TAGLINE, 'Coded '+new Date().toLocaleString(), COPYRIGHT, '', 'SIGHTLINE', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n||'not yet'}`), '', 'CLASSROOM MOMENTS  (Teaching Moves are wrapped like {Modeling: ...})', ''];
+  const head=[(state.title||'Transcript'), APP+'\u2122 - '+BRAND, TAGLINE, 'Coded '+new Date().toLocaleString(), COPYRIGHT, agreementLine(), '', 'SIGHTLINE', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n||'not yet'}`), '', 'CLASSROOM MOMENTS  (Teaching Moves are wrapped like {Modeling: ...})', ''];
   const body=exportRows().map(r=>r.mark ? `\n-- ${r.mark} --` : (l=>`${fmt(absT(l)).padStart(5)}  ${(l.who?l.who+':':'').padEnd(3)} ` + l.segs.map(s=>s.code?`{${BY[s.code].name}: ${s.text}}`:s.text).join(''))(r.l));
   return head.concat(body).join('\n')+'\n';
 }
@@ -998,6 +1005,7 @@ async function exportDocx(){
   body+=para(run('Teaching Moves: ',{color:'6B665C',sz:18})+STRATS.map(st=>run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})).join(''),{before:240});
   body+=para(run(APP+'\u2122 · '+BRAND+' · '+TAGLINE,{color:'8A867E',sz:16}),{before:120});
   body+=para(run(COPYRIGHT,{color:'8A867E',sz:16}),{after:0});
+  if(agreementLine()) body+=para(run(agreementLine(),{color:'8A867E',sz:16}),{after:0});
   const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1200" w:right="1200" w:bottom="1200" w:left="1200" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1015,7 +1023,7 @@ function richHtml(){
   const rows=tallyRows();
   const lines=exportRows().map(r=>r.mark?`<p style="margin:12px 0 4px;font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.1em;color:#B9784A"><b>${esc(r.mark.toUpperCase())}</b></p>`:(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(absT(l))}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`)(r.l)).join('');
   const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n||'<i>not yet</i>'}`).join(' &nbsp;·&nbsp; ');
-  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-size:8pt;letter-spacing:.1em;color:#B9784A;margin:0 0 2px"><b>${esc((BRAND+' · '+APP).toUpperCase())}</b></p><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}<p style="font-size:8pt;color:#8A867E;margin-top:10px">${esc(APP)}\u2122 · ${esc(BRAND)}<br>${esc(COPYRIGHT)}</p></div>`;
+  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-size:8pt;letter-spacing:.1em;color:#B9784A;margin:0 0 2px"><b>${esc((BRAND+' · '+APP).toUpperCase())}</b></p><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}<p style="font-size:8pt;color:#8A867E;margin-top:10px">${esc(APP)}\u2122 · ${esc(BRAND)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div>`;
 }
 function richText(){ return exportTxt(); }
 $('#copyRich').addEventListener('click', async ()=>{
@@ -1038,7 +1046,7 @@ $('#copyRich').addEventListener('click', async ()=>{
 $('#dlDocx').addEventListener('click', async ()=>{ try{ const b=await exportDocx(); await saveFile(stem()+'-coded.docx', b); }catch(err){ toast('Could not build the Word file: '+(err&&err.message||err), 4000); } });
 $('#dlHtml').addEventListener('click', ()=>saveFile(stem()+'-coded.html', exportHtml()));
 $('#dlTxt').addEventListener('click', ()=>saveFile(stem()+'-coded.txt', exportTxt()));
-$('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:APP, brand:BRAND, version:2, ...state}, null, 2)));
+$('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:APP, brand:BRAND, version:2, agreement:agreement(), ...state}, null, 2)));
 $('#dlMedia').addEventListener('click', ()=>{ const c=clips[cur]; if(!c) return; saveFile(stem()+'-'+clipName(cur).toLowerCase().replace(/\s+/g,'-')+'.'+ext(c.blob.type), c.blob); });
 
 /* ---------------- persistence (this browser only) ---------------- */
