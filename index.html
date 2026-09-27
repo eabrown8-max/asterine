@@ -225,6 +225,7 @@ h2.peach::before{background:var(--peach)}
           <button type="button" class="btn" id="btnStop" disabled>■ Stop</button>
         </div>
         <div class="timer"><span id="clock">0:00</span><small id="clockLabel">ready</small></div>
+        <div class="controls" id="whoRow" hidden><span class="note" style="margin:0;align-self:center">Speaking now</span><div class="segmented" id="whoSeg"><button type="button" data-who="T" class="on">T</button><button type="button" data-who="S">S</button><button type="button" data-who="Ss">Ss</button></div></div>
         <div class="interim" id="interim"></div>
         <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. <a href="https://eabrown8-max.github.io/classroom-moments-coder/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
         <p class="note" id="speechNote"></p>
@@ -297,6 +298,7 @@ h2.peach::before{background:var(--peach)}
           <li>Pick a strategy, then click lines or drag over words.</li>
           <li>Pick another strategy and click again to change it.</li>
           <li>Keys 1 to 7 pick a strategy, 0 uncodes.</li>
+          <li>T, S or A sets the speaker of a clicked line; while recording, who is speaking now.</li>
         </ul>
       </section>
       <section class="block">
@@ -537,6 +539,13 @@ document.addEventListener('keydown', e=>{
   if(editing!==null || e.target.matches('input,textarea,[contenteditable="true"]') || e.metaKey||e.ctrlKey||e.altKey) return;
   if(e.key>='1'&&e.key<='7'){ pick(STRATS[+e.key-1].key); }
   else if(e.key==='0'){ pick('clear'); }
+  else if(/^[tsaTSA]$/.test(e.key)){
+    const w = e.key.toLowerCase()==='t' ? 'T' : e.key.toLowerCase()==='s' ? 'S' : 'Ss';
+    if(recording){ setLiveWho(w); return; }
+    let lis=[]; if(pending){ for(let i=Math.min(pending.a.li,pending.b.li); i<=Math.max(pending.a.li,pending.b.li); i++) lis.push(i); } else { const now=$('.line.now'); if(now) lis=[+now.dataset.i]; }
+    if(!lis.length){ toast('Click a line first, then press T, S or A', 1600); return; }
+    lis.forEach(i=>{ state.lines[i].who=w; }); changed(); toast(lis.length+(lis.length>1?' lines':' line')+' set to '+w, 1200);
+  }
   else if(e.key==='Escape'){ active=null; pending=null; updateKey(); document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); }
   else if(e.key===' ' && mediaAny() && !recording){ e.preventDefault(); togglePlay(); }
 });
@@ -557,6 +566,9 @@ $('#btnNew').addEventListener('click', async ()=>{ if(recording){ toast('Stop th
 function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
 
 /* ---------------- recording ---------------- */
+let liveWho='T';
+function setLiveWho(w){ liveWho=w; document.querySelectorAll('#whoSeg button').forEach(b=>b.classList.toggle('on', b.dataset.who===w)); }
+$('#whoSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) setLiveWho(b.dataset.who); });
 let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null, recClip=0, recType='';
 $('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -594,7 +606,7 @@ async function startRecording(){
   rec.onstop = onRecStopped;
   rec.start(1000);
   recording=true; t0=performance.now(); if(!state.createdAt) state.createdAt=Date.now(); state.mediaName=null; if(!clips.length) state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-  $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true;
+  $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true; $('#whoRow').hidden=false; setLiveWho('T');
   clockTimer=setInterval(()=>{ $('#clock').textContent=fmt(elapsed()); }, 250);
   renderTranscript(); startSpeech();
 }
@@ -604,7 +616,7 @@ function onRecStopped(){
   const blob = new Blob(chunks, {type: recType || 'video/webm'}); chunks=[];
   const dur = Math.max(0.5, elapsed());
   clips[recClip] = {blob, type: blob.type}; state.clips[recClip] = {dur, name:'Recording '+(recClip+1)};
-  $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
+  $('#stage').classList.remove('recording'); $('#whoRow').hidden=true; $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
   loadClip(recClip); saveMedia(); renderTranscript(); scheduleSave(); toast((recClip?'Recording '+(recClip+1)+' added':'Recording saved in this browser')+'. Now code the transcript.', 2600);
 }
 function startSpeech(){
@@ -627,7 +639,7 @@ function startSpeech(){
 function stopSpeech(){ if(sr){ const s=sr; sr=null; try{ s.stop(); }catch(e){} } }
 function addLive(t, text){
   const cap = text.charAt(0).toUpperCase()+text.slice(1); const punct=/[.?!]$/.test(cap)?cap:cap+'.';
-  state.lines.push({t, c:recClip, who:'T', segs:[{text:punct, code:null}]});
+  state.lines.push({t, c:recClip, who:liveWho, segs:[{text:punct, code:null}]});
   const tr=$('#transcript'); if(state.lines.length===1) tr.innerHTML=''; if(state.clips.length>1 || recClip>0){ const prev=state.lines[state.lines.length-2]; if(!prev || (prev.c||0)!==recClip){ const m=document.createElement('div'); m.className='clipmark'; m.innerHTML=`<span>${esc('Recording '+(recClip+1))}</span><span class="n">starts ${fmt(clipOffset(recClip))}</span>`; tr.appendChild(m); } } tr.appendChild(renderLine(state.lines.length-1));
   tr.lastElementChild.scrollIntoView({block:'nearest'}); renderMeta(); scheduleSave();
 }
