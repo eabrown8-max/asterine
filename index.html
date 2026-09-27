@@ -143,6 +143,13 @@ h2.peach::before{background:var(--peach)}
 .player input[type=range]{flex:1;accent-color:var(--accent)}
 .player .t{font:12px var(--mono);font-variant-numeric:tabular-nums;color:var(--soft);min-width:8ch;text-align:right}
 .wbar{height:4px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden}
+.cplist{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cp-item{border:1px solid var(--line);border-left:3px solid var(--peach);border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.45;background:var(--surface)}
+.cp-item .cp-t{font:12px var(--mono);color:var(--mute);margin-right:6px}
+.cp-item .cp-v{font-weight:600}
+.cp-item .cp-why{color:var(--soft);margin-top:3px}
+.cp-item .cp-ops{display:flex;gap:6px;margin-top:6px}
+.line.cp{box-shadow:inset 3px 0 0 var(--peach)}
 .wbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .filerow{display:flex;flex-wrap:wrap;gap:8px}
 .filerow label.btn{cursor:pointer}
@@ -280,7 +287,7 @@ h2.peach::before{background:var(--peach)}
       </ul>
       <details><summary>Privacy &amp; Local Data Guarantee</summary>
         <p><b>1. Zero cloud data storage.</b> This application runs entirely in your browser. All classroom video, audio recordings, transcripts and files stay on your device. There is no server behind it: <span class="owner"></span> ("the Owner") does not collect, stream, store or have any access to your recordings or student data.</p>
-        <p><b>2. Transcription on your device.</b> Words and speakers are produced by models that run inside your browser on your own computer. Your audio is not sent to any transcription service, is never stored elsewhere, is never sold, and is never used to train any model. The one exception is the optional live draft while recording, which is off unless you turn it on: it uses your browser's own speech recognition (Google's in Chrome and Edge, Apple's in Safari) under that company's terms.</p>
+        <p><b>2. Transcription on your device.</b> Words and speakers are produced by models that run inside your browser on your own computer. Your audio is not sent to any transcription service, is never stored elsewhere, is never sold, and is never used to train any model. The one exception is the optional live draft while recording, which is off unless you turn it on: it uses your browser's own speech recognition (Google's in Chrome and Edge, Apple's in Safari) under that company's terms. If you choose to save your voice, the app keeps a short numeric fingerprint of it in this browser's storage, never the recording itself, so it can tell your lines from your students'. It stays on this device and you can delete it at any time.</p>
         <p><b>3. Local authorization.</b> You are responsible for making sure that recording video or audio in your classroom follows your school district's media-consent and technology-use policies.</p>
       </details>
       <details><summary>Private Beta Confidentiality Terms</summary>
@@ -350,8 +357,13 @@ h2.peach::before{background:var(--peach)}
           <button type="button" class="btn primary small" id="btnWhisper">Transcribe + speakers</button>
           <button type="button" class="btn small ghost" id="btnSpeakers">Speakers only</button>
         </div>
+        <div class="controls" id="voiceRow">
+          <button type="button" class="btn small" id="btnEnroll">Save my voice (10 s)</button>
+          <button type="button" class="btn small ghost" id="btnForgetVoice" hidden>Forget my voice</button>
+          <span class="note" id="voiceStatus"></span>
+        </div>
         <div class="wbar" id="wbar" hidden><i id="wFill"></i></div>
-        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. Whisper writes the words, a second model tells the voices apart: the one that talks most is T, the others S. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB).</p>
+        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. Whisper writes the words. Save your voice once and every line that matches it is T; without a saved voice, the voice that talks most is T. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB; the voice model about 95 MB).</p>
       </section>
 
       <section class="block">
@@ -415,6 +427,19 @@ h2.peach::before{background:var(--peach)}
           <li>Pick another move and click again to change it.</li>
           <li>Keys 1 to 6 pick a move, 0 uncodes.</li>
         </ul>
+      </section>
+      <section class="block" id="cpBlock" hidden>
+        <h2 class="peach">Counterpoint</h2>
+        <p class="note" style="margin:0">Would the theory read this moment differently?</p>
+        <div class="controls">
+          <button type="button" class="btn primary small" id="btnCounterpoint">Read against the theory</button>
+          <button type="button" class="btn small ghost" id="btnCalib">Practice calibration</button>
+          <button type="button" class="btn small" id="btnScore" hidden>Score my coding</button>
+          <button type="button" class="btn small ghost" id="btnLeaveCalib" hidden>Leave calibration</button>
+        </div>
+        <div class="wbar" id="cpBar" hidden><i id="cpFill"></i></div>
+        <p class="note" id="cpStatus">A second reading of every coded line against the six definitions, on this computer. Where the theory disagrees, you decide. First run downloads the Counterpoint model once, about 25 MB.</p>
+        <div class="cplist" id="cpList"></div>
       </section>
       <section class="block">
         <h2 class="peach">Download</h2>
@@ -662,7 +687,7 @@ function renderTally(){
 }
 function renderLine(i){
   const l=state.lines[i];
-  const d=document.createElement('div'); d.className='line'; d.dataset.i=i;
+  const d=document.createElement('div'); d.className='line'+(l.cp?' cp':''); d.dataset.i=i;
   const t=document.createElement('span'); t.className='t'; t.textContent=fmt(absT(l)); t.title='Play from here';
   const w=document.createElement('span'); w.className='who'; w.textContent=l.who?l.who+':':'·'; w.title='Change speaker';
   const x=document.createElement('span'); x.className='txt';
@@ -923,7 +948,7 @@ v.addEventListener('timeupdate', ()=>{
 $('#scrub').addEventListener('input', e=>{ const d=isFinite(v.duration)?v.duration:0; if(d) v.currentTime=e.target.value/1000*d; });
 
 /* ---------------- whisper, in the browser ---------------- */
-let wModel='base', wBusy=false, wPipes={}, wLib=null, wDia=null;
+let wModel='base', wBusy=false, wPipes={}, wLib=null, wDia=null, wXv=null, teacherVoice=null, enrolling=false;
 $('#wModel').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||wBusy) return; wModel=b.dataset.m; document.querySelectorAll('#wModel button').forEach(x=>x.classList.toggle('on',x===b)); });
 function wStatus(msg, frac){ $('#wStatus').textContent=msg; const bar=$('#wbar'); if(frac==null){ bar.hidden=true; } else { bar.hidden=false; $('#wFill').style.width=Math.round(frac*100)+'%'; } }
 async function decodeTo16k(blob){
@@ -938,9 +963,9 @@ async function lib(){
   wLib=await import(LIB_URL);
   wLib.env.allowLocalModels=false; wLib.env.useBrowserCache=true; if(WASM_PATHS){ try{ wLib.env.backends.onnx.wasm.wasmPaths=WASM_PATHS; }catch(e){} } return wLib;
 }
-function progressTo(label){ const files={}; return d=>{
-  if(d.status==='progress' && d.file){ files[d.file]=[d.loaded||0, d.total||0]; let l=0,t=0; for(const k in files){ l+=files[k][0]; t+=files[k][1]; } wStatus('Downloading '+label+', once: '+Math.round(t?l/t*100:0)+'%', t?l/t:0); }
-  else if(d.status==='initiate'){ wStatus('Preparing '+label+'...', 0); }
+function progressTo(label, put){ put=put||wStatus; const files={}; return d=>{
+  if(d.status==='progress' && d.file){ files[d.file]=[d.loaded||0, d.total||0]; let l=0,t=0; for(const k in files){ l+=files[k][0]; t+=files[k][1]; } put('Downloading '+label+', once: '+Math.round(t?l/t*100:0)+'%', t?l/t:0); }
+  else if(d.status==='initiate'){ put('Preparing '+label+'...', 0); }
 }; }
 function withTimeout(p, ms){ return new Promise((res,rej)=>{ const h=setTimeout(()=>rej(new Error('timed out')), ms); p.then(v=>{ clearTimeout(h); res(v); }, e=>{ clearTimeout(h); rej(e); }); }); }
 async function getPipe(){
@@ -984,6 +1009,81 @@ function assignSpeakers(c, segs, ends){
   });
   return ids.length;
 }
+// ---- Teacher voiceprint: saved on this device, never the recording ----
+function loadVoice(){ try{ const v=JSON.parse(localStorage.getItem('cm-teacher-voice')||'null'); if(Array.isArray(v)&&v.length>16) return Float32Array.from(v); }catch(e){} return null; }
+function refreshVoiceUI(){
+  const has=!!teacherVoice; $('#btnForgetVoice').hidden=!has;
+  $('#btnEnroll').textContent = has ? 'Re-record my voice' : 'Save my voice (10 s)';
+  $('#voiceStatus').textContent = has ? 'Your voice is saved on this computer. Lines that match it are T.' : 'Save your voice once so the app knows which lines are yours.';
+}
+async function getXVector(){
+  if(wXv) return wXv;
+  const T=await lib(); const id='Xenova/wavlm-base-plus-sv'; const pc=progressTo('the voice model');
+  const processor=await T.AutoProcessor.from_pretrained(id, {progress_callback:pc});
+  const model=await T.AutoModelForXVector.from_pretrained(id, {progress_callback:pc});
+  wXv={model, processor}; return wXv;
+}
+async function embed(f32){
+  // one unit-length vector for a stretch of 16 kHz audio; long stretches use their middle ten seconds
+  const {model, processor}=await getXVector();
+  let a=f32; const MAX=16000*10; if(a.length>MAX){ const o=Math.floor((a.length-MAX)/2); a=a.slice(o,o+MAX); }
+  const inputs=await processor(a); const {embeddings}=await model(inputs);
+  const v=Float32Array.from(embeddings.data); let n=0; for(const x of v) n+=x*x; n=Math.sqrt(n)||1; for(let i=0;i<v.length;i++) v[i]/=n; return v;
+}
+function cosine(a,b){ let s=0; for(let i=0;i<a.length;i++) s+=a[i]*b[i]; return s; }
+function splitThreshold(sims){
+  // two-means in one dimension; the midpoint between the centres is the T/S line, clamped to a sane range
+  if(sims.length<4) return {thr:0.62, gap:1};
+  let c1=Math.max(...sims), c2=Math.min(...sims);
+  for(let k=0;k<12;k++){ let s1=0,n1=0,s2=0,n2=0; for(const s of sims){ if(Math.abs(s-c1)<=Math.abs(s-c2)){ s1+=s; n1++; } else { s2+=s; n2++; } } if(n1) c1=s1/n1; if(n2) c2=s2/n2; }
+  return {thr:Math.min(0.85, Math.max(0.45, (c1+c2)/2)), gap:c1-c2};
+}
+async function assignByVoice(c, segs, ends, audio, ref){
+  // every speech turn is compared with the saved voice; a line takes the label that covers most of it
+  const items=[]; let k=0;
+  for(const g of segs){
+    k++; if(g.e-g.s<0.6) continue;
+    const v=await embed(audio.slice(Math.floor(g.s*16000), Math.floor(g.e*16000)));
+    items.push({s:g.s, e:g.e, sim:cosine(v, ref)});
+    if(k%6===0) wStatus('Matching the voices to yours... '+k+' of '+segs.length, k/segs.length);
+  }
+  if(!items.length) return null;
+  const {thr, gap}=splitThreshold(items.map(x=>x.sim));
+  const one = gap<0.08, mean=items.reduce((a,x)=>a+x.sim,0)/items.length;
+  for(const it of items){ it.who = one ? (mean>=0.6?'T':'S') : (it.sim>=thr?'T':'S'); }
+  const mine=state.lines.map((l,i)=>({l,i})).filter(x=>(x.l.c||0)===c && x.l.t!=null);
+  let prev='T', t=0, s=0;
+  mine.forEach((x,j)=>{
+    const s0=x.l.t, e0=(ends&&ends[x.i]!=null)?ends[x.i]:(j+1<mine.length?mine[j+1].l.t:s0+4);
+    const ov={T:0,S:0}; for(const it of items){ const o=Math.min(e0,it.e)-Math.max(s0,it.s); if(o>0) ov[it.who]+=o; }
+    x.l.who = (ov.T||ov.S) ? (ov.T>=ov.S?'T':'S') : prev; prev=x.l.who; if(x.l.who==='T') t++; else s++;
+  });
+  return {t, s, thr, one};
+}
+async function enrollVoice(){
+  if(enrolling||wBusy) return;
+  if(framed){ toast('Open the app in its own tab to use the microphone', 2600); return; }
+  enrolling=true; $('#btnEnroll').disabled=true; $('#btnWhisper').disabled=true; $('#btnSpeakers').disabled=true;
+  let st=null;
+  try{
+    st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+    const r=new MediaRecorder(st); const parts=[];
+    r.addEventListener('dataavailable', e=>{ if(e.data&&e.data.size) parts.push(e.data); });
+    const stopped=new Promise(res=>r.addEventListener('stop', res));
+    r.start();
+    for(let i=10;i>0;i--){ $('#voiceStatus').textContent='Recording. Talk the way you teach... '+i; await new Promise(res=>setTimeout(res,1000)); }
+    r.stop(); await stopped; st.getTracks().forEach(tr=>tr.stop()); st=null;
+    $('#voiceStatus').textContent='Learning your voice...';
+    const audio=await decodeTo16k(new Blob(parts,{type:r.mimeType||'audio/webm'}));
+    let e2=0, n=0; for(let i=0;i<audio.length;i+=16){ e2+=audio[i]*audio[i]; n++; }
+    if(Math.sqrt(e2/(n||1))<0.004){ $('#voiceStatus').textContent='That was too quiet to learn from. Try again, closer to the microphone.'; return; }
+    const v=await embed(audio);
+    teacherVoice=v; try{ localStorage.setItem('cm-teacher-voice', JSON.stringify(Array.from(v))); }catch(e){}
+    refreshVoiceUI(); wStatus('Your voice is saved. Transcribe + speakers will mark the lines that match it as T.'); toast('Saved, on this computer');
+  }catch(err){ console.error(err); $('#voiceStatus').textContent='Could not record: '+(err&&err.message||err); }
+  finally{ if(st) st.getTracks().forEach(tr=>tr.stop()); enrolling=false; $('#btnEnroll').disabled=false; $('#btnWhisper').disabled=wBusy; $('#btnSpeakers').disabled=wBusy; }
+}
+function forgetVoice(){ teacherVoice=null; try{ localStorage.removeItem('cm-teacher-voice'); }catch(e){} refreshVoiceUI(); toast('Forgotten'); }
 async function runWhisper(withWords){
   if(wBusy) return; const clip=clips[cur]; if(!clip){ toast('Load or record something first', 1600); return; }
   const c=cur; const mine=state.lines.filter(l=>(l.c||0)===c).length;
@@ -1006,12 +1106,19 @@ async function runWhisper(withWords){
       state.sample=false;
     }
     wStatus('Telling the voices apart...', 0);
-    let n=0;
-    try{ const segs=await diarize(audio); n=assignSpeakers(c, segs, ends); }
+    let n=0, byVoice=null;
+    try{
+      const segs=await diarize(audio);
+      if(teacherVoice){ byVoice=await assignByVoice(c, segs, ends, audio, teacherVoice); }
+      if(!byVoice) n=assignSpeakers(c, segs, ends);
+    }
     catch(e){ console.error(e); wStatus('The words are in; the speaker model could not run here ('+(e&&e.message||e)+'). Speakers can be set with the T / S / A keys.'); changed(); return; }
     changed();
     const lines=state.lines.filter(l=>(l.c||0)===c).length;
-    wStatus((withWords? lines+' lines written. ' : '') + (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'One voice found, so every line is T.'));
+    let tail;
+    if(byVoice) tail = byVoice.one ? (byVoice.t ? 'Every line matches your saved voice, so every line is T.' : 'No line matches your saved voice, so every line is S.') : byVoice.t+' lines match your saved voice (T); '+byVoice.s+' do not (S).';
+    else tail = (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'One voice found, so every line is T.');
+    wStatus((withWords? lines+' lines written. ' : '') + tail);
     toast('Done, on this computer');
   }catch(err){
     console.error(err); wStatus('This could not run here: '+(err&&err.message||err)+'. Chrome or Edge on a laptop is the surest bet.');
@@ -1019,6 +1126,95 @@ async function runWhisper(withWords){
 }
 $('#btnWhisper').addEventListener('click', ()=>runWhisper(true));
 $('#btnSpeakers').addEventListener('click', ()=>runWhisper(false));
+/* ---------------- Counterpoint: a second reading against the theory, and practice calibration ---------------- */
+let cpPipe=null, cpBusy=false, calib=null;   // calib = {backup, ref:[code per line]} while a calibration set is loaded
+function cpStatus(msg, frac){ $('#cpStatus').textContent=msg; const bar=$('#cpBar'); if(frac==null){ bar.hidden=true; } else { bar.hidden=false; $('#cpFill').style.width=Math.round(frac*100)+'%'; } }
+function lineCode(l){ const cnt={}; for(const s of l.segs){ if(s.code) cnt[s.code]=(cnt[s.code]||0)+s.text.length; } return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||null; }
+async function getCp(){
+  if(cpPipe) return cpPipe;
+  const T=await lib();
+  cpPipe=await T.pipeline('zero-shot-classification', 'Xenova/nli-deberta-v3-xsmall', {progress_callback: progressTo('the Counterpoint model', cpStatus)});
+  return cpPipe;
+}
+async function runCounterpoint(){
+  if(cpBusy) return;
+  const coded=state.lines.map((l,i)=>({l,i,code:lineCode(l)})).filter(x=>x.code && lineText(x.l).trim().length>=15);
+  if(!coded.length){ toast('Code some lines first', 1800); return; }
+  cpBusy=true; $('#btnCounterpoint').disabled=true;
+  try{
+    const pipe=await getCp(); const labels=STRATS.map(s=>s.def); let n=0, flagged=0;
+    for(const x of coded){
+      const out=await pipe(lineText(x.l), labels, {hypothesis_template:'{}'});
+      const score={}; out.labels.forEach((lab,k)=>{ score[STRATS[labels.indexOf(lab)].key]=out.scores[k]; });
+      const top=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
+      if(top!==x.code && score[top]>=0.35 && score[top]-(score[x.code]||0)>=0.15){ x.l.cp={sug:top, s:+score[top].toFixed(2), yours:x.code, ys:+(score[x.code]||0).toFixed(2)}; flagged++; }
+      else delete x.l.cp;
+      n++; cpStatus('Reading against the theory... '+n+' of '+coded.length, n/coded.length);
+    }
+    state.lines.forEach(l=>{ if(l.cp && !coded.some(x=>x.l===l)) delete l.cp; });
+    renderTranscript(); scheduleSave(); renderCpList();
+    cpStatus(flagged ? coded.length+' coded lines read. The theory reads '+flagged+' differently; they are listed below and marked in the transcript. You decide.' : coded.length+' coded lines read. The theory reads every one the way you did.');
+  }catch(err){ console.error(err); cpStatus('Counterpoint could not run here: '+(err&&err.message||err)+'. Chrome or Edge on a laptop is the surest bet.'); }
+  finally{ cpBusy=false; $('#btnCounterpoint').disabled=false; }
+}
+function renderCpList(){
+  const box=$('#cpList'); box.innerHTML='';
+  state.lines.forEach((l,i)=>{
+    if(!l.cp) return;
+    const you=BY[l.cp.yours], th=BY[l.cp.sug]; if(!you||!th) return;
+    const d=document.createElement('div'); d.className='cp-item';
+    d.innerHTML=`<span class="cp-t">${fmt(absT(l))}</span>you: <span class="cp-v" style="color:${you.text}">${you.name}</span> &middot; theory: <span class="cp-v" style="color:${th.text}">${th.name}</span>`
+      +`<div class="cp-why">${esc(th.def)} <span class="cp-t">(${Math.round(l.cp.s*100)}% vs ${Math.round(l.cp.ys*100)}%)</span></div>`
+      +`<div class="cp-ops"><button type="button" class="btn small" data-act="accept">Recode as ${esc(th.name)}</button><button type="button" class="btn small ghost" data-act="keep">Keep mine</button></div>`;
+    d.querySelector('[data-act=accept]').addEventListener('click', ()=>{ for(const s of l.segs){ if(s.code) s.code=l.cp.sug; } delete l.cp; changed(); renderCpList(); });
+    d.querySelector('[data-act=keep]').addEventListener('click', ()=>{ delete l.cp; rerenderLine(i); scheduleSave(); renderCpList(); });
+    box.appendChild(d);
+  });
+}
+function kappa(a, b){
+  // Cohen's kappa over two equal-length code sequences; 'none' is a category
+  const n=a.length; if(!n) return {po:0, pe:0, k:0, agree:0, n:0};
+  let agree=0; for(let i=0;i<n;i++) if(a[i]===b[i]) agree++;
+  const po=agree/n; const cats=[...new Set(a.concat(b))]; let pe=0;
+  for(const c of cats){ pe+= (a.filter(x=>x===c).length/n) * (b.filter(x=>x===c).length/n); }
+  return {po, pe, k: (1-pe)>0 ? (po-pe)/(1-pe) : 1, agree, n};
+}
+async function startCalibration(refState, label){
+  // refState: a coded transcript that stands as the reference. Its codes are hidden; the teacher codes; Score compares.
+  if(calib){ toast('Already in calibration', 1600); return; }
+  if(state.lines.length && !await ask('Load the '+label+'? Your current transcript is kept and comes back when you leave calibration.', 'Load')) return;
+  calib={ backup: JSON.parse(JSON.stringify(state)), ref: refState.lines.map(l=>lineCode(l)||'none'), label };
+  const blank=JSON.parse(JSON.stringify(refState)); blank.lines.forEach(l=>{ delete l.cp; l.segs=[{text:lineText(l), code:null}]; }); blank.title=(refState.title||'Calibration')+' - calibration'; blank.sample=false;
+  state=blank; cur=-1; changed();
+  $('#btnScore').hidden=false; $('#btnLeaveCalib').hidden=false; $('#btnCalib').hidden=true; $('#btnCounterpoint').hidden=true; $('#cpList').innerHTML='';
+  cpStatus('Code every line with the move you see, then Score my coding. The reference is hidden until you score. '+(refState.sample ? 'This is the practice set; the credential set of forty moments comes from the authors.' : ''));
+}
+function scoreCalibration(){
+  if(!calib) return;
+  const mine=state.lines.map(l=>lineCode(l)||'none'); const ref=calib.ref;
+  const n=Math.min(mine.length, ref.length); const r=kappa(mine.slice(0,n), ref.slice(0,n));
+  const box=$('#cpList'); box.innerHTML='';
+  for(let i=0;i<n;i++){ if(mine[i]===ref[i]) continue; const l=state.lines[i]; const you=BY[mine[i]], th=BY[ref[i]];
+    const d=document.createElement('div'); d.className='cp-item';
+    d.innerHTML=`<span class="cp-t">${fmt(absT(l))}</span>you: <span class="cp-v" style="color:${you?you.text:'inherit'}">${you?you.name:'uncoded'}</span> &middot; reference: <span class="cp-v" style="color:${th?th.text:'inherit'}">${th?th.name:'uncoded'}</span>`+(th?`<div class="cp-why">${esc(th.def)}</div>`:'');
+    box.appendChild(d); }
+  const bar=0.80, pass=r.k>=bar;
+  cpStatus(`Agreement ${r.agree} of ${r.n} (${Math.round(r.po*100)}%). Cohen's kappa ${r.k.toFixed(2)}. The credential bar is kappa ${bar.toFixed(2)} on forty moments; this set has ${r.n}. `+(pass?'Above the bar on this set.':'Below the bar on this set; the disagreements are listed below.'));
+}
+function leaveCalibration(){
+  if(!calib) return;
+  state=calib.backup; calib=null; cur=-1; changed(); $('#cpList').innerHTML='';
+  $('#btnScore').hidden=true; $('#btnLeaveCalib').hidden=true; $('#btnCalib').hidden=false; $('#btnCounterpoint').hidden=false;
+  cpStatus('Back to your transcript.');
+}
+$('#btnCounterpoint').addEventListener('click', runCounterpoint);
+$('#btnCalib').addEventListener('click', ()=>startCalibration(sample(), 'practice set'));
+$('#btnScore').addEventListener('click', scoreCalibration);
+$('#btnLeaveCalib').addEventListener('click', leaveCalibration);
+$('#cpBlock').hidden = framed;
+$('#btnEnroll').addEventListener('click', enrollVoice);
+$('#btnForgetVoice').addEventListener('click', forgetVoice);
+teacherVoice=loadVoice(); refreshVoiceUI();
 
 /* ---------------- files in ---------------- */
 $('#fileMedia').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; if(recording) return; if(state.sample){ state.lines=[]; state.sample=false; state.clips=[]; clips=[]; cur=-1; state.title=f.name.replace(/\.[^.]+$/,''); } const i=clips.length; clips.push({blob:f, type:f.type}); state.clips[i]={dur:0, name:f.name.replace(/\.[^.]+$/,'')}; state.mediaName=f.name; loadClip(i); saveMedia(); changed(); toast((i?'Added as recording '+(i+1):'Media loaded')+'. Bring a transcript, or type lines in.'); e.target.value=''; });
