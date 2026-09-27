@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
 </head>
 <body>
 <title>Classroom Moments Coder</title>
@@ -124,6 +125,11 @@ h2.peach::before{background:var(--peach)}
 .tag{font:600 10.5px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;border-radius:4px;background:var(--now);color:var(--peach)}
 .transcript{display:flex;flex-direction:column;gap:2px}
 .empty{color:var(--soft);padding:30px 10px;text-align:center;font-size:14px;line-height:1.6}
+.clipmark{display:flex;align-items:center;gap:10px;margin:14px 0 6px;font:600 10.5px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--peach)}
+.clipmark::after{content:"";flex:1;height:1px;background:var(--line)}
+.clipmark .n{font:500 11px var(--mono);color:var(--mute);letter-spacing:0;text-transform:none}
+.clipnav{display:flex;align-items:center;gap:8px;margin-top:8px;font:12.5px var(--mono);color:var(--soft)}
+.clipnav .lab{flex:1;text-align:center}
 .line{display:grid;grid-template-columns:5ch 3.4ch minmax(0,1fr) 22px;gap:0 8px;align-items:start;padding:5px 8px;border-radius:6px;position:relative}
 .line:hover{background:var(--raised)}
 .line.now{background:var(--now)}
@@ -196,7 +202,7 @@ h2.peach::before{background:var(--peach)}
     </div>
     <div class="meta" id="meta">no recording yet</div>
   </header>
-  <div class="banner" id="banner" hidden><span>Inside claude.ai the camera, microphone and file downloads are switched off. Coding and <b>Copy in color</b> work here; recording and saving files use the desktop copy of this page.</span></div>
+  <div class="banner" id="banner" hidden><span>Inside claude.ai the camera, microphone and file downloads are switched off. The full app, with recording and downloads, lives at the public link.</span><a href="https://eabrown8-max.github.io/classroom-moments-coder/" target="_blank" rel="noopener">Open the full app &rarr;</a></div>
 
   <div class="app">
     <!-- ================= LEFT: media ================= -->
@@ -220,7 +226,7 @@ h2.peach::before{background:var(--peach)}
         </div>
         <div class="timer"><span id="clock">0:00</span><small id="clockLabel">ready</small></div>
         <div class="interim" id="interim"></div>
-        <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. Use the desktop copy of this page.</p>
+        <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. <a href="https://eabrown8-max.github.io/classroom-moments-coder/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
         <p class="note" id="speechNote"></p>
       </section>
 
@@ -231,6 +237,7 @@ h2.peach::before{background:var(--peach)}
           <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Position">
           <span class="t" id="ptime">0:00 / 0:00</span>
         </div>
+        <div class="clipnav" id="clipnav" hidden><button type="button" class="btn small" id="clipPrev" title="Previous recording">&lsaquo;</button><span class="lab" id="clipLabel"></span><button type="button" class="btn small" id="clipNext" title="Next recording">&rsaquo;</button></div>
         <label class="note" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="follow" checked> Follow the transcript while playing</label>
       </section>
 
@@ -328,15 +335,21 @@ const WHO = ['T','S','Ss',''];
 
 /* ---------------- state ---------------- */
 const framed=(()=>{ try{ return window.top!==window.self; }catch(e){ return true; } })();
-let state = { title:'Transcript', lines:[], createdAt:null, mediaName:null, sample:false };
-let mediaBlob = null, mediaType = '';
+let state = { title:'Transcript', lines:[], createdAt:null, mediaName:null, sample:false, clips:[] };
+let clips = [];               // [{blob, type}] in memory and in this browser's storage
+let cur = -1;                 // clip loaded in the player
+const mediaAny = () => clips.length > 0;
+state.clips = [];             // [{dur, name}] saved with the transcript
+function clipOffset(c){ let o=0; for(let j=0;j<Math.min(c||0, state.clips.length);j++) o+=state.clips[j].dur||0; return o; }
+function absT(l){ return l.t==null ? null : clipOffset(l.c||0)+l.t; }
+function clipName(c){ return (state.clips[c]&&state.clips[c].name) || ('Recording '+(c+1)); }
 let active = null;          // strategy key, 'clear', or null
 let pending = null;         // {a:{li,off}, b:{li,off}} waiting for a strategy
 let editing = null;         // line index being edited
 let dirty = false;
 
 const sample = () => ({
-  title:'Sample - Bob Ross, Season 29 Episode 1', sample:true, createdAt:Date.now(), mediaName:null,
+  title:'Sample - Bob Ross, Season 29 Episode 1', sample:true, createdAt:Date.now(), mediaName:null, clips:[],
   lines:[
     {t:131, who:'T', segs:[{text:"Okay, without even cleaning the brush, we'll go right into a little phthalo blue. I like phthalo blue - ", code:'modeling'},{text:"it's a very warm blue, very nice.", code:'articulating'}]},
     {t:139, who:'T', segs:[{text:"Once again, just tap a little color into it, and let's go back up here, still using our little criss-cross strokes - X's. ", code:'modeling'},{text:"That's all they are, little X's.", code:'articulating'}]},
@@ -422,7 +435,7 @@ function renderTally(){
 function renderLine(i){
   const l=state.lines[i];
   const d=document.createElement('div'); d.className='line'; d.dataset.i=i;
-  const t=document.createElement('span'); t.className='t'; t.textContent=fmt(l.t); t.title='Jump playback here';
+  const t=document.createElement('span'); t.className='t'; t.textContent=fmt(absT(l)); t.title='Play from here';
   const w=document.createElement('span'); w.className='who'; w.textContent=l.who?l.who+':':'·'; w.title='Change speaker';
   const x=document.createElement('span'); x.className='txt';
   for(const s of l.segs){ const sp=document.createElement('span'); sp.className='seg'; if(s.code) sp.dataset.code=s.code; sp.textContent=s.text; x.appendChild(sp); }
@@ -433,15 +446,16 @@ function renderLine(i){
 function renderTranscript(){
   const tr=$('#transcript'); tr.innerHTML='';
   if(!state.lines.length){ tr.innerHTML='<div class="empty">Nothing here yet. Start a recording, bring in a file on the left, or paste plain text below.</div>'; }
-  else state.lines.forEach((_,i)=>tr.appendChild(renderLine(i)));
+  else { let lastC=-1; state.lines.forEach((l,i)=>{ const c=l.c||0; if(state.clips.length>1 && c!==lastC){ lastC=c; const m=document.createElement('div'); m.className='clipmark'; m.innerHTML=`<span>${esc(clipName(c))}</span><span class="n">starts ${fmt(clipOffset(c))}</span>`; tr.appendChild(m); } tr.appendChild(renderLine(i)); }); }
   $('#sheetTitle').textContent=state.title||'Transcript';
   $('#sampleTag').hidden=!state.sample;
   renderTally(); renderMeta();
 }
 function rerenderLine(i){ const old=$(`.line[data-i="${i}"]`); if(old) old.replaceWith(renderLine(i)); else renderTranscript(); renderTally(); }
 function renderMeta(){
-  const n=state.lines.length; const timed=state.lines.filter(l=>l.t!=null); const last=timed.length?fmt(timed[timed.length-1].t):'–';
-  $('#meta').innerHTML = n ? `<b>${n}</b> lines · <b>${last}</b> · ${state.mediaName?esc(state.mediaName):(mediaBlob?'recorded here':'no media')}` : 'no recording yet';
+  const n=state.lines.length; const timed=state.lines.filter(l=>l.t!=null); const last=timed.length?fmt(absT(timed[timed.length-1])):'–';
+  const media = state.clips.length ? (state.clips.length===1 ? esc(clipName(0)) : state.clips.length+' recordings · '+fmt(clipOffset(state.clips.length))) : 'no media';
+  $('#meta').innerHTML = n ? `<b>${n}</b> lines · <b>${last}</b> · ${media}` : 'no recording yet';
 }
 function changed(){ dirty=true; renderTranscript(); scheduleSave(); }
 
@@ -489,7 +503,7 @@ document.addEventListener('selectionchange', ()=>{ // touch selections land here
 });
 $('#transcript').addEventListener('click', e=>{
   const line=e.target.closest('.line'); if(!line) return; const li=+line.dataset.i;
-  if(e.target.closest('.t')){ seek(state.lines[li].t); return; }
+  if(e.target.closest('.t')){ seek(state.lines[li].t, state.lines[li].c||0); return; }
   if(e.target.closest('.who')){ const l=state.lines[li]; l.who=WHO[(WHO.indexOf(l.who)+1)%WHO.length]; rerenderLine(li); scheduleSave(); return; }
   if(e.target.closest('.x')){ state.lines.splice(li,1); changed(); return; }
 });
@@ -524,10 +538,10 @@ document.addEventListener('keydown', e=>{
   if(e.key>='1'&&e.key<='7'){ pick(STRATS[+e.key-1].key); }
   else if(e.key==='0'){ pick('clear'); }
   else if(e.key==='Escape'){ active=null; pending=null; updateKey(); document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); }
-  else if(e.key===' ' && mediaBlob && !recording){ e.preventDefault(); togglePlay(); }
+  else if(e.key===' ' && mediaAny() && !recording){ e.preventDefault(); togglePlay(); }
 });
 $('#btnClearCodes').addEventListener('click', async ()=>{ if(!state.lines.length) return; if(!await ask('Remove every color from this transcript? The words stay.', 'Uncode all')) return; for(const l of state.lines){ l.segs=[{text:lineText(l), code:null}]; } changed(); toast('All colors removed'); });
-$('#btnAddLine').addEventListener('click', ()=>{ const last=state.lines[state.lines.length-1]; state.lines.push({t: last?last.t:null, who:'T', segs:[{text:'', code:null}]}); state.sample=false; changed(); const txt=$(`.line[data-i="${state.lines.length-1}"] .txt`); if(txt) startEdit(state.lines.length-1, txt); });
+$('#btnAddLine').addEventListener('click', ()=>{ const last=state.lines[state.lines.length-1]; state.lines.push({t: last?last.t:null, c: last?(last.c||0):Math.max(0,clips.length-1), who:'T', segs:[{text:'', code:null}]}); state.sample=false; changed(); const txt=$(`.line[data-i="${state.lines.length-1}"] .txt`); if(txt) startEdit(state.lines.length-1, txt); });
 const openPaste=()=>{ $('#paste').hidden=false; $('#pasteBox').focus(); $('#paste').scrollIntoView({block:'nearest'}); };
 $('#btnPasteOpen').addEventListener('click', openPaste); $('#btnPasteOpen2').addEventListener('click', openPaste);
 $('#btnPasteCancel').addEventListener('click', ()=>{ $('#paste').hidden=true; });
@@ -536,14 +550,14 @@ $('#btnPasteUse').addEventListener('click', async ()=>{
   if(!lines.length){ toast('Nothing to use - paste some text first', 2000); return; }
   const append=$('#pasteAppend').checked && state.lines.length && !state.sample;
   if(!append && state.lines.length && !state.sample && !await ask('Replace the current transcript with the pasted text?', 'Replace')) return;
-  if(append) state.lines=state.lines.concat(lines); else { state.lines=lines; if(!mediaBlob) state.title='Pasted text ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+  lines.forEach(l=>l.c=Math.max(0,clips.length-1)); if(append) state.lines=state.lines.concat(lines); else { state.lines=lines; if(!mediaAny()) state.title='Pasted text ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
   state.sample=false; $('#pasteBox').value=''; $('#paste').hidden=true; changed(); toast(lines.length+' lines ready to code');
 });
 $('#btnNew').addEventListener('click', async ()=>{ if(recording){ toast('Stop the recording first', 1800); return; } if(state.lines.length && !state.sample && !await ask('Start a new session? The current transcript and recording are cleared from this browser. Download the project first if you want to keep it.', 'New session')) return; resetAll(); toast('New session'); });
-function resetAll(){ stopPlaybackMedia(); mediaBlob=null; mediaType=''; state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
+function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
 
 /* ---------------- recording ---------------- */
-let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null;
+let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null, recClip=0, recType='';
 $('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechOK = !!SR;
@@ -560,11 +574,11 @@ $('#btnRec').addEventListener('click', startRecording);
 $('#btnStop').addEventListener('click', stopRecording);
 async function startRecording(){
   if(recording) return;
-  if(state.sample) { state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false}; }
+  if(state.sample) { state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; clips=[]; cur=-1; }
   try{
     stream = await navigator.mediaDevices.getUserMedia({ audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}, video: mode==='video' ? {width:{ideal:1280}, height:{ideal:720}, facingMode:'user'} : false });
   }catch(err){
-    const msg = err && (err.name==='NotAllowedError'||err.name==='SecurityError') ? (framed ? 'Recording is off inside claude.ai. Use the desktop copy of this page.' : (policyAllows===false ? 'This site does not allow the camera or microphone. Open a local copy of the page to record.' : 'The camera or microphone was blocked. Click the camera icon in the address bar, allow it for this site, and try again.')) : 'Could not start the ' + (mode==='video'?'camera':'microphone') + ': ' + (err&&err.message||err);
+    const msg = err && (err.name==='NotAllowedError'||err.name==='SecurityError') ? (framed ? 'Recording is off inside claude.ai. Use the full app at the public link (banner at the top).' : (policyAllows===false ? 'This site does not allow the camera or microphone. Open a local copy of the page to record.' : 'The camera or microphone was blocked. Click the camera icon in the address bar, allow it for this site, and try again.')) : 'Could not start the ' + (mode==='video'?'camera':'microphone') + ': ' + (err&&err.message||err);
     toast(msg, 6000); if(framed){ $('#framedNote').hidden=false; $('#framedNote').scrollIntoView({block:'nearest'}); } return;
   }
   stopPlaybackMedia();
@@ -572,14 +586,14 @@ async function startRecording(){
   $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='recording audio';
   meter(stream);
   const cands = mode==='video' ? ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'] : ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
-  mediaType = cands.find(c=>window.MediaRecorder && MediaRecorder.isTypeSupported(c)) || '';
+  recType = cands.find(c=>window.MediaRecorder && MediaRecorder.isTypeSupported(c)) || '';
   chunks=[];
-  try{ rec = mediaType ? new MediaRecorder(stream,{mimeType:mediaType}) : new MediaRecorder(stream); }catch(err){ toast('Recording is not supported in this browser: '+err.message, 5000); stream.getTracks().forEach(t=>t.stop()); return; }
-  mediaType = rec.mimeType || mediaType;
+  try{ rec = recType ? new MediaRecorder(stream,{mimeType:recType}) : new MediaRecorder(stream); }catch(err){ toast('Recording is not supported in this browser: '+err.message, 5000); stream.getTracks().forEach(t=>t.stop()); return; }
+  recType = rec.mimeType || recType; recClip = clips.length;
   rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
   rec.onstop = onRecStopped;
   rec.start(1000);
-  recording=true; t0=performance.now(); state.createdAt=Date.now(); state.mediaName=null; state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  recording=true; t0=performance.now(); if(!state.createdAt) state.createdAt=Date.now(); state.mediaName=null; if(!clips.length) state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
   $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true;
   clockTimer=setInterval(()=>{ $('#clock').textContent=fmt(elapsed()); }, 250);
   renderTranscript(); startSpeech();
@@ -587,9 +601,11 @@ async function startRecording(){
 function stopRecording(){ if(!recording) return; recording=false; clearInterval(clockTimer); stopSpeech(); try{ rec.stop(); }catch(e){ onRecStopped(); } }
 function onRecStopped(){
   stream && stream.getTracks().forEach(t=>t.stop()); stream=null; stopMeter();
-  mediaBlob = new Blob(chunks, {type: mediaType || 'video/webm'}); chunks=[];
+  const blob = new Blob(chunks, {type: recType || 'video/webm'}); chunks=[];
+  const dur = Math.max(0.5, elapsed());
+  clips[recClip] = {blob, type: blob.type}; state.clips[recClip] = {dur, name:'Recording '+(recClip+1)};
   $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
-  loadPlayback(); saveMedia(); scheduleSave(); toast('Recording saved in this browser. Now code the transcript.', 2600);
+  loadClip(recClip); saveMedia(); renderTranscript(); scheduleSave(); toast((recClip?'Recording '+(recClip+1)+' added':'Recording saved in this browser')+'. Now code the transcript.', 2600);
 }
 function startSpeech(){
   if(!SR) return;
@@ -611,8 +627,8 @@ function startSpeech(){
 function stopSpeech(){ if(sr){ const s=sr; sr=null; try{ s.stop(); }catch(e){} } }
 function addLive(t, text){
   const cap = text.charAt(0).toUpperCase()+text.slice(1); const punct=/[.?!]$/.test(cap)?cap:cap+'.';
-  state.lines.push({t, who:'T', segs:[{text:punct, code:null}]});
-  const tr=$('#transcript'); if(state.lines.length===1) tr.innerHTML=''; tr.appendChild(renderLine(state.lines.length-1));
+  state.lines.push({t, c:recClip, who:'T', segs:[{text:punct, code:null}]});
+  const tr=$('#transcript'); if(state.lines.length===1) tr.innerHTML=''; if(state.clips.length>1 || recClip>0){ const prev=state.lines[state.lines.length-2]; if(!prev || (prev.c||0)!==recClip){ const m=document.createElement('div'); m.className='clipmark'; m.innerHTML=`<span>${esc('Recording '+(recClip+1))}</span><span class="n">starts ${fmt(clipOffset(recClip))}</span>`; tr.appendChild(m); } } tr.appendChild(renderLine(state.lines.length-1));
   tr.lastElementChild.scrollIntoView({block:'nearest'}); renderMeta(); scheduleSave();
 }
 function meter(s){
@@ -627,35 +643,45 @@ function stopMeter(){ cancelAnimationFrame(raf); raf=null; try{ meter.ctx && met
 
 /* ---------------- playback ---------------- */
 const v=$('#video');
-function loadPlayback(){
-  if(!mediaBlob) return;
-  v.srcObject=null; v.muted=false; v.controls=false; v.src=URL.createObjectURL(mediaBlob);
-  const isVideo = (mediaBlob.type||mediaType||'').startsWith('video');
+let afterLoad=null;
+function loadClip(i, after){
+  const clip=clips[i]; if(!clip) return;
+  stopPlaybackMedia(); cur=i; afterLoad=after||null;
+  v.srcObject=null; v.muted=false; v.controls=true; v.src=URL.createObjectURL(clip.blob);
+  const isVideo = (clip.type||clip.blob.type||'').startsWith('video');
   $('#stage').classList.toggle('audio-only', !isVideo); $('#audioLabel').textContent='audio recording';
-  $('#playBlock').hidden=false; $('#dlMedia').disabled=false; $('#dlMedia').textContent='Recording (.' + ext(mediaBlob.type) + ')';
-  v.onloadedmetadata=()=>{ if(!isFinite(v.duration)){ // webm from MediaRecorder often lacks duration: nudge it
-      v.currentTime=1e9; v.ontimeupdate=()=>{ v.ontimeupdate=null; v.currentTime=0; updateTime(); }; } updateTime(); };
+  $('#playBlock').hidden=false; $('#dlMedia').disabled=false; $('#dlMedia').textContent=clipName(i)+' (.' + ext(clip.blob.type) + ')';
+  $('#clipnav').hidden = clips.length<2; $('#clipLabel').textContent = clipName(i)+' of '+clips.length; $('#clipPrev').disabled = i<=0; $('#clipNext').disabled = i>=clips.length-1;
+  v.onloadedmetadata=()=>{
+    const meta=state.clips[i]||(state.clips[i]={dur:0,name:'Recording '+(i+1)});
+    if(isFinite(v.duration) && v.duration>0 && Math.abs((meta.dur||0)-v.duration)>1){ meta.dur=v.duration; renderTranscript(); scheduleSave(); }
+    if(!isFinite(v.duration)){ v.currentTime=1e9; v.ontimeupdate=()=>{ v.ontimeupdate=null; v.currentTime=0; updateTime(); const f=afterLoad; afterLoad=null; f&&f(); }; }
+    else { updateTime(); const f=afterLoad; afterLoad=null; f&&f(); }
+  };
   renderMeta();
 }
+$('#clipPrev').addEventListener('click', ()=>{ if(cur>0) loadClip(cur-1); });
+$('#clipNext').addEventListener('click', ()=>{ if(cur<clips.length-1) loadClip(cur+1); });
+v.addEventListener('ended', ()=>{ if(cur>=0 && cur<clips.length-1) loadClip(cur+1, ()=>{ v.currentTime=0; v.play().catch(()=>{}); }); });
 function stopPlaybackMedia(){ try{ v.pause(); }catch(e){} if(v.src){ URL.revokeObjectURL(v.src); v.removeAttribute('src'); v.load(); } }
 function ext(type){ type=type||''; if(type.includes('mp4')) return 'mp4'; if(type.includes('ogg')) return 'ogg'; if(type.includes('wav')) return 'wav'; if(type.includes('mpeg')) return 'mp3'; return 'webm'; }
 function togglePlay(){ if(v.paused) v.play().catch(()=>{}); else v.pause(); }
 $('#btnPlay').addEventListener('click', togglePlay);
 v.addEventListener('play', ()=>$('#btnPlay').textContent='❚❚'); v.addEventListener('pause', ()=>$('#btnPlay').textContent='▶');
-function seek(t){ if(t==null) return; if(!mediaBlob) { toast('No recording to play for this transcript', 1400); return; } v.currentTime=Math.max(0,t); v.play().catch(()=>{}); }
-function updateTime(){ const d=isFinite(v.duration)?v.duration:0; $('#ptime').textContent=fmt(v.currentTime)+' / '+fmt(d); if(d) $('#scrub').value=Math.round(v.currentTime/d*1000); }
+function seek(t, c){ if(t==null) return; c=c||0; if(!clips[c]) { toast(clips.length?'No media for that part of the transcript':'No recording to play for this transcript', 1600); return; } const go=()=>{ v.currentTime=Math.max(0,t); v.play().catch(()=>{}); }; if(c!==cur) loadClip(c, go); else go(); }
+function updateTime(){ const d=isFinite(v.duration)?v.duration:0; const off=clipOffset(cur); $('#ptime').textContent=fmt(off+v.currentTime)+' / '+fmt(clipOffset(state.clips.length)||d); if(d) $('#scrub').value=Math.round(v.currentTime/d*1000); }
 v.addEventListener('timeupdate', ()=>{
   updateTime(); if(recording) return;
-  const ct=v.currentTime; let idx=-1; for(let i=0;i<state.lines.length;i++){ const lt=state.lines[i].t; if(lt==null) continue; if(lt<=ct+0.05) idx=i; else break; }
+  const ct=v.currentTime; let idx=-1; for(let i=0;i<state.lines.length;i++){ const l=state.lines[i]; if(l.t==null || (l.c||0)!==cur) continue; if(l.t<=ct+0.05) idx=i; else if(idx>=0) break; }
   document.querySelectorAll('.line.now').forEach(x=>{ if(+x.dataset.i!==idx) x.classList.remove('now'); });
   if(idx>=0){ const el=$(`.line[data-i="${idx}"]`); if(el && !el.classList.contains('now')){ el.classList.add('now'); if($('#follow').checked && !v.paused) el.scrollIntoView({block:'nearest', behavior:'smooth'}); } }
 });
 $('#scrub').addEventListener('input', e=>{ const d=isFinite(v.duration)?v.duration:0; if(d) v.currentTime=e.target.value/1000*d; });
 
 /* ---------------- files in ---------------- */
-$('#fileMedia').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; if(recording) return; stopPlaybackMedia(); mediaBlob=f; mediaType=f.type; state.mediaName=f.name; if(state.sample){ state.lines=[]; state.sample=false; state.title=f.name.replace(/\.[^.]+$/,''); } loadPlayback(); saveMedia(); changed(); toast('Media loaded. Bring a transcript, or type lines in.'); e.target.value=''; });
-$('#fileText').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; const text=await f.text(); const lines=parseTranscript(text, f.name); if(!lines.length){ toast('No lines found in that file', 2500); return; } if(state.lines.length && !state.sample && !await ask('Replace the current transcript with this file?', 'Replace')) return; state.lines=lines; state.sample=false; if(!state.mediaName && !mediaBlob) state.title=f.name.replace(/\.[^.]+$/,''); changed(); toast(lines.length+' lines loaded'); e.target.value=''; });
-$('#fileProj').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; try{ const p=JSON.parse(await f.text()); if(!p||!Array.isArray(p.lines)) throw 0; state={title:p.title||'Transcript', lines:p.lines.map(l=>({t:(l.t==null?null:+l.t||0), who:l.who||'', segs:(l.segs||[]).map(s=>({text:String(s.text||''), code:BY[s.code]?s.code:null}))})), createdAt:p.createdAt||Date.now(), mediaName:p.mediaName||null, sample:false}; state.lines.forEach(normalize); changed(); toast('Project loaded' + (p.mediaName?' - bring in '+p.mediaName+' to play it back':'')); }catch(err){ toast('That is not a project file from this page', 2500); } e.target.value=''; });
+$('#fileMedia').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; if(recording) return; if(state.sample){ state.lines=[]; state.sample=false; state.clips=[]; clips=[]; cur=-1; state.title=f.name.replace(/\.[^.]+$/,''); } const i=clips.length; clips.push({blob:f, type:f.type}); state.clips[i]={dur:0, name:f.name.replace(/\.[^.]+$/,'')}; state.mediaName=f.name; loadClip(i); saveMedia(); changed(); toast((i?'Added as recording '+(i+1):'Media loaded')+'. Bring a transcript, or type lines in.'); e.target.value=''; });
+$('#fileText').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; const text=await f.text(); const lines=parseTranscript(text, f.name); if(!lines.length){ toast('No lines found in that file', 2500); return; } if(state.lines.length && !state.sample && !await ask('Replace the current transcript with this file?', 'Replace')) return; lines.forEach(l=>l.c=Math.max(0,clips.length-1)); state.lines=lines; state.sample=false; if(!mediaAny()) state.title=f.name.replace(/\.[^.]+$/,''); changed(); toast(lines.length+' lines loaded'); e.target.value=''; });
+$('#fileProj').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; try{ const p=JSON.parse(await f.text()); if(!p||!Array.isArray(p.lines)) throw 0; state={clips:Array.isArray(p.clips)?p.clips.map(c=>({dur:+c.dur||0, name:String(c.name||'')})):[], title:p.title||'Transcript', lines:p.lines.map(l=>({t:(l.t==null?null:+l.t||0), c:+l.c||0, who:l.who||'', segs:(l.segs||[]).map(s=>({text:String(s.text||''), code:BY[s.code]?s.code:null}))})), createdAt:p.createdAt||Date.now(), mediaName:p.mediaName||null, sample:false}; state.lines.forEach(normalize); changed(); toast('Project loaded' + (p.mediaName?' - bring in '+p.mediaName+' to play it back':'')); }catch(err){ toast('That is not a project file from this page', 2500); } e.target.value=''; });
 function parseTranscript(text, name, opts={}){
   const out=[]; const ts=s=>{ const m=s.match(/(\d+):(\d\d):(\d\d)[.,](\d+)/)||s.match(/(\d+):(\d\d)[.,](\d+)/); if(!m) return null; return m.length===5 ? (+m[1]*3600+ +m[2]*60+ +m[3]) : (+m[1]*60+ +m[2]); };
   const who=s=>{ const m=s.match(/^\s*(Ss|S|T|Teacher|Student|Students)\s*[:.-]\s*/i); if(!m) return ['',s]; const w=m[1].toLowerCase(); return [w.startsWith('ss')||w.startsWith('students')?'Ss':w.startsWith('s')?'S':'T', s.slice(m[0].length)]; };
@@ -671,26 +697,27 @@ function parseTranscript(text, name, opts={}){
 
 /* ---------------- files out ---------------- */
 async function saveFile(filename, data){
-  if(framed){ toast('File downloads are off inside claude.ai. Use "Copy in color" to paste into Word or Docs, or the desktop copy of this page.', 6000); return; }
+  if(framed){ toast('File downloads are off inside claude.ai. Use "Copy in color", or the full app at the public link (banner at the top).', 6000); return; }
   const blob = data instanceof Blob ? data : new Blob([data], {type:'application/octet-stream'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); toast('Downloading '+filename);
 }
 const stem = () => (state.title||'transcript').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').slice(0,60) || 'transcript';
+function exportRows(){ const rows=[]; let lastC=-1; for(const l of state.lines){ const c=l.c||0; if(state.clips.length>1 && c!==lastC){ lastC=c; rows.push({mark:clipName(c)+' · starts '+fmt(clipOffset(c))}); } rows.push({l}); } return rows; }
 function tallyRows(){ const c=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const s of l.segs) if(s.code&&s.text.trim()) c[s.code]++; return STRATS.map(s=>[s,c[s.key]]); }
 function exportHtml(){
   const rows=tallyRows();
-  const lines=state.lines.map(l=>`<div class="line"><span class="t">${fmt(l.t)}</span><span class="who">${l.who?esc(l.who)+':':''}</span><span class="txt">${l.segs.map(s=>s.code?`<b style="color:${BY[s.code].text}">${esc(s.text)}</b>`:esc(s.text)).join('')}</span></div>`).join('\n');
+  const lines=exportRows().map(r=>r.mark?`<div style="margin:14px 0 6px;font:600 10.5px sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#B9784A">${esc(r.mark)}</div>`:(l=>`<div class="line"><span class="t">${fmt(absT(l))}</span><span class="who">${l.who?esc(l.who)+':':''}</span><span class="txt">${l.segs.map(s=>s.code?`<b style="color:${BY[s.code].text}">${esc(s.text)}</b>`:esc(s.text)).join('')}</span></div>`)(r.l)).join('\n');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(state.title||'Coded transcript')}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
-<p class="eyebrow">Cognitive Apprenticeship · Classroom Moments</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${state.lines.length?fmt(state.lines[state.lines.length-1].t):'0:00'} · coded ${new Date().toLocaleDateString()}</div>
+<p class="eyebrow">Cognitive Apprenticeship · Classroom Moments</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
 <div class="grid"><div class="card">${lines||'<p>No lines.</p>'}</div>
 <aside><h2>Color key</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n}</span></span>`).join('')}<div class="tally"><div><span>coded spans</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div></div></body></html>`;
 }
 function exportTxt(){
   const rows=tallyRows();
   const head=[(state.title||'Transcript'), 'Cognitive Apprenticeship - Classroom Moments', 'Coded '+new Date().toLocaleString(), '', 'TALLY', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n}`), '', 'TRANSCRIPT  (coded spans are wrapped like {Modeling: ...})', ''];
-  const body=state.lines.map(l=>`${fmt(l.t).padStart(5)}  ${(l.who?l.who+':':'').padEnd(3)} ` + l.segs.map(s=>s.code?`{${BY[s.code].name}: ${s.text}}`:s.text).join(''));
+  const body=exportRows().map(r=>r.mark ? `\n-- ${r.mark} --` : (l=>`${fmt(absT(l)).padStart(5)}  ${(l.who?l.who+':':'').padEnd(3)} ` + l.segs.map(s=>s.code?`{${BY[s.code].name}: ${s.text}}`:s.text).join(''))(r.l));
   return head.concat(body).join('\n')+'\n';
 }
 async function exportDocx(){
@@ -707,8 +734,10 @@ async function exportDocx(){
   for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n}`,{color:'23211D'}),{after:20});
   body+=para(run(`coded spans   ${rows.reduce((a,[,n])=>a+n,0)}`,{color:'6B665C',sz:18}),{after:240,before:60});
   body+=para(run('TRANSCRIPT',{color:'6B665C',b:true,sz:18}),{after:80});
-  for(const l of state.lines){
-    let r=run(fmt(l.t).padStart(5)+'  ',{color:'8A867E',font:'Menlo',sz:18});
+  for(const row of exportRows()){
+    if(row.mark){ body+=para(run(row.mark.toUpperCase(),{color:'B9784A',b:true,sz:16}),{before:200,after:80}); continue; }
+    const l=row.l;
+    let r=run(fmt(absT(l)).padStart(5)+'  ',{color:'8A867E',font:'Menlo',sz:18});
     if(l.who) r+=run(l.who+': ',{color:'6B665C',b:true});
     for(const sg of l.segs) r+=sg.code ? run(sg.text,{color:BY[sg.code].text.slice(1),b:true}) : run(sg.text,{color:'23211D'});
     body+=para(r,{after:100,ind:900});
@@ -729,7 +758,7 @@ async function exportDocx(){
 }
 function richHtml(){
   const rows=tallyRows();
-  const lines=state.lines.map(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(l.t)}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`).join('');
+  const lines=exportRows().map(r=>r.mark?`<p style="margin:12px 0 4px;font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.1em;color:#B9784A"><b>${esc(r.mark.toUpperCase())}</b></p>`:(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(absT(l))}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`)(r.l)).join('');
   const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n}`).join(' &nbsp;·&nbsp; ');
   return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}</div>`;
 }
@@ -755,7 +784,7 @@ $('#dlDocx').addEventListener('click', async ()=>{ try{ const b=await exportDocx
 $('#dlHtml').addEventListener('click', ()=>saveFile(stem()+'-coded.html', exportHtml()));
 $('#dlTxt').addEventListener('click', ()=>saveFile(stem()+'-coded.txt', exportTxt()));
 $('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:'Classroom Moments Coder', version:1, ...state}, null, 2)));
-$('#dlMedia').addEventListener('click', ()=>{ if(!mediaBlob) return; saveFile(stem()+'-recording.'+ext(mediaBlob.type), mediaBlob); });
+$('#dlMedia').addEventListener('click', ()=>{ const c=clips[cur]; if(!c) return; saveFile(stem()+'-'+clipName(cur).toLowerCase().replace(/\s+/g,'-')+'.'+ext(c.blob.type), c.blob); });
 
 /* ---------------- persistence (this browser only) ---------------- */
 let saveTimer=null;
@@ -764,12 +793,15 @@ function idb(){ return new Promise((res,rej)=>{ try{ const r=indexedDB.open('mom
 async function kvSet(k,val){ try{ const db=await idb(); await new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(val,k); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} }
 async function kvGet(k){ try{ const db=await idb(); return await new Promise((res,rej)=>{ const tx=db.transaction('kv','readonly'); const q=tx.objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }catch(e){ return undefined; } }
 function saveState(){ kvSet('state', JSON.parse(JSON.stringify(state))); }
-function saveMedia(){ kvSet('media', mediaBlob ? {blob:mediaBlob, type:mediaType||mediaBlob.type} : null); }
+function saveMedia(){ kvSet('media', clips.length ? clips.map(c=>({blob:c.blob, type:c.type||c.blob.type})) : null); }
 async function restore(){
   const s=await kvGet('state'); const m=await kvGet('media');
-  if(s && Array.isArray(s.lines) && (s.lines.length || m)){ state=s; state.lines.forEach(normalize); }
+  if(s && Array.isArray(s.lines) && (s.lines.length || m)){ state=s; if(!Array.isArray(state.clips)) state.clips=[]; state.lines.forEach(l=>{ normalize(l); l.c=l.c||0; }); }
   else state=sample();
-  if(m && m.blob){ mediaBlob=m.blob; mediaType=m.type||m.blob.type; loadPlayback(); }
+  const arr = Array.isArray(m) ? m : (m && m.blob ? [m] : []);
+  clips = arr.filter(x=>x&&x.blob).map(x=>({blob:x.blob, type:x.type||x.blob.type}));
+  while(state.clips.length<clips.length) state.clips.push({dur:0, name:'Recording '+(state.clips.length+1)});
+  if(clips.length) loadClip(0);
   renderTranscript();
 }
 
