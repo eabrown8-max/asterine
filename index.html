@@ -363,7 +363,7 @@ h2.peach::before{background:var(--peach)}
           <span class="note" id="voiceStatus"></span>
         </div>
         <div class="wbar" id="wbar" hidden><i id="wFill"></i></div>
-        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. Whisper writes the words. Save your voice once and every line that matches it is T; without a saved voice, the voice that talks most is T. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB; the voice model about 95 MB).</p>
+        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. The recording keeps the whole room, so students across the room are heard, and Whisper writes the words, starting a new line wherever the voice changes. Save your voice once and every line that matches it is T; without a saved voice, the voice that talks most is T. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB; the voice model about 95 MB).</p>
       </section>
 
       <section class="block">
@@ -430,16 +430,18 @@ h2.peach::before{background:var(--peach)}
       </section>
       <section class="block" id="cpBlock" hidden>
         <h2 class="peach">Counterpoint</h2>
-        <p class="note" style="margin:0">Would the theory read this moment differently? Open to everyone during the beta; after launch, Counterpoint and the credential are part of the Teacher license.</p>
+        <p class="note" style="margin:0">See how a second reading compares with your coding.</p>
         <div class="controls">
-          <button type="button" class="btn primary small" id="btnCounterpoint">Read against the theory</button>
+          <button type="button" class="btn primary small" id="btnCounterpoint">Run Counterpoint</button>
           <button type="button" class="btn small ghost" id="btnCalib">Practice calibration</button>
           <button type="button" class="btn small" id="btnScore" hidden>Score my coding</button>
           <button type="button" class="btn small ghost" id="btnLeaveCalib" hidden>Leave calibration</button>
           <button type="button" class="btn small ghost" id="btnResetTally" hidden>Reset tally</button>
+          <button type="button" class="btn small ghost" id="btnSaveTally" hidden>Save tally to file</button>
+          <label class="btn small ghost" for="fileTally">Load tally<input type="file" id="fileTally" accept=".json,application/json"></label>
         </div>
         <div class="wbar" id="cpBar" hidden><i id="cpFill"></i></div>
-        <p class="note" id="cpStatus">A second reading of every coded line against the six definitions, on this computer. Where the theory disagrees, you decide. First run downloads the Counterpoint model once, about 25 MB.</p>
+        <p class="note" id="cpStatus">Based on the six Teaching Move definitions. Your coding stays yours.</p>
         <div class="cplist" id="cpList"></div>
       </section>
       <section class="block">
@@ -846,7 +848,7 @@ async function startRecording(){
   if(recording) return;
   if(state.sample) { state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; clips=[]; cur=-1; }
   try{
-    stream = await navigator.mediaDevices.getUserMedia({ audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}, video: mode==='video' ? {width:{ideal:1280}, height:{ideal:720}, facingMode:'user'} : false });
+    stream = await navigator.mediaDevices.getUserMedia({ audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}, video: mode==='video' ? {width:{ideal:1280}, height:{ideal:720}, facingMode:'user'} : false });
   }catch(err){
     const msg = err && (err.name==='NotAllowedError'||err.name==='SecurityError') ? (framed ? 'Recording is off inside claude.ai. Use the full app at the public link (banner at the top).' : (policyAllows===false ? 'This site does not allow the camera or microphone. Open a local copy of the page to record.' : 'The camera or microphone was blocked. Click the camera icon in the address bar, allow it for this site, and try again.')) : 'Could not start the ' + (mode==='video'?'camera':'microphone') + ': ' + (err&&err.message||err);
     toast(msg, 6000); if(framed){ $('#framedNote').hidden=false; $('#framedNote').scrollIntoView({block:'nearest'}); } return;
@@ -949,7 +951,8 @@ v.addEventListener('timeupdate', ()=>{
 $('#scrub').addEventListener('input', e=>{ const d=isFinite(v.duration)?v.duration:0; if(d) v.currentTime=e.target.value/1000*d; });
 
 /* ---------------- whisper, in the browser ---------------- */
-let wModel='base', wBusy=false, wPipes={}, wLib=null, wDia=null, wXv=null, teacherVoice=null, enrolling=false;
+let wModel=(navigator.gpu?'small':'base'), wBusy=false, wPipes={}, wLib=null, wDia=null, wXv=null, teacherVoice=null, enrolling=false;
+document.querySelectorAll('#wModel button').forEach(x=>x.classList.toggle('on', x.dataset.m===wModel));
 $('#wModel').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||wBusy) return; wModel=b.dataset.m; document.querySelectorAll('#wModel button').forEach(x=>x.classList.toggle('on',x===b)); });
 function wStatus(msg, frac){ $('#wStatus').textContent=msg; const bar=$('#wbar'); if(frac==null){ bar.hidden=true; } else { bar.hidden=false; $('#wFill').style.width=Math.round(frac*100)+'%'; } }
 async function decodeTo16k(blob){
@@ -1094,12 +1097,31 @@ async function runWhisper(withWords){
   try{
     wStatus('Reading the audio...', 0);
     const audio=await decodeTo16k(clip.blob); const secs=audio.length/16000;
-    let ends=null;
+    let ends=null, turnSegs=null;
     if(withWords){
       const pipe=await getPipe();
       let done=0; wStatus('Writing the words for '+fmt(secs)+' of audio...', 0);
-      const out=await pipe(audio, { return_timestamps:true, chunk_length_s:30, stride_length_s:5, chunk_callback:()=>{ done+=25; wStatus('Writing the words... about '+fmt(Math.min(secs,done))+' of '+fmt(secs), Math.min(1,done/secs)); } });
-      const chunks=(out.chunks||[]).filter(ch=>ch.text&&ch.text.trim());
+      const prog={ chunk_length_s:30, stride_length_s:5, chunk_callback:()=>{ done+=25; wStatus('Writing the words... about '+fmt(Math.min(secs,done))+' of '+fmt(secs), Math.min(1,done/secs)); } };
+      let words=null, out;
+      try{ out=await pipe(audio, { return_timestamps:'word', ...prog }); words=(out.chunks||[]).filter(ch=>ch.text&&ch.text.trim()&&ch.timestamp&&ch.timestamp[0]!=null); if(!words.length) words=null; }
+      catch(e){ console.warn('word timestamps failed, using segments', e); words=null; }
+      let chunks;
+      if(words){
+        // a new line wherever the voice changes, at a pause of a second, or at a sentence end followed by a pause
+        try{ turnSegs=await diarize(audio); }catch(e){ turnSegs=[]; }
+        const whoAt=t=>{ let best=null,bd=1e9; for(const g of turnSegs){ if(t>=g.s&&t<=g.e) return g.id; const d=t<g.s?g.s-t:t-g.e; if(d<bd){bd=d;best=g.id;} } return bd<0.5?best:null; };
+        chunks=[]; let cur=null, prevEnd=null, prevWho=null;
+        for(const w of words){
+          const s=+w.timestamp[0], e=(w.timestamp[1]!=null?+w.timestamp[1]:s+0.3), who=whoAt((s+e)/2);
+          const gap=prevEnd==null?0:s-prevEnd, endsSentence=cur&&/[.?!]$/.test(cur.text.trim());
+          const turn = who!=null && prevWho!=null && who!==prevWho;
+          if(!cur || turn || gap>1.0 || (endsSentence && gap>0.35) || cur.text.split(' ').length>=40){ cur={text:'', timestamp:[s,e]}; chunks.push(cur); }
+          cur.text+=(cur.text?' ':'')+w.text.trim(); cur.timestamp[1]=e; prevEnd=e; if(who!=null) prevWho=who;
+        }
+      } else {
+        out=await pipe(audio, { return_timestamps:true, ...prog });
+        chunks=(out.chunks||[]).filter(ch=>ch.text&&ch.text.trim());
+      }
       if(!chunks.length){ wStatus('Whisper heard no speech in this recording.'); return; }
       const fresh=chunks.map(ch=>({t:Math.max(0,+ch.timestamp[0]||0), _e:(ch.timestamp[1]!=null?+ch.timestamp[1]:null), c, who:'T', segs:[{text:ch.text.trim(), code:null}]}));
       state.lines = state.lines.filter(l=>(l.c||0)<c).concat(fresh, state.lines.filter(l=>(l.c||0)>c));
@@ -1109,7 +1131,7 @@ async function runWhisper(withWords){
     wStatus('Telling the voices apart...', 0);
     let n=0, byVoice=null;
     try{
-      const segs=await diarize(audio);
+      const segs=turnSegs||await diarize(audio);
       if(teacherVoice){ byVoice=await assignByVoice(c, segs, ends, audio, teacherVoice); }
       if(!byVoice) n=assignSpeakers(c, segs, ends);
     }
@@ -1139,6 +1161,8 @@ async function getCp(){
 }
 async function runCounterpoint(){
   if(cpBusy) return;
+  let seen=false; try{ seen=!!localStorage.getItem('cm-cp-notice'); }catch(e){}
+  if(!seen){ if(!await ask('Counterpoint runs on this computer. The first use downloads its model once, about 25 MB; nothing you coded leaves this device. It is open to everyone during the beta and part of the Teacher license after launch.', 'Continue')) return; try{ localStorage.setItem('cm-cp-notice','1'); }catch(e){} }
   const coded=state.lines.map((l,i)=>({l,i,code:lineCode(l)})).filter(x=>x.code && lineText(x.l).trim().length>=15);
   if(!coded.length){ toast('Code some lines first', 1800); return; }
   cpBusy=true; $('#btnCounterpoint').disabled=true;
@@ -1178,7 +1202,7 @@ let tally=loadTally();
 function saveTally(){ try{ localStorage.setItem('cm-calibration', JSON.stringify(tally)); }catch(e){} }
 function tallyLine(){ if(!tally.pairs.length) return ''; const r=kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])); const reached = r.n>=BAR_N && r.k>=BAR_K;
   return ` Running tally on this computer: ${r.n} of ${BAR_N} moments, agreement ${Math.round(r.po*100)}%, kappa ${r.k.toFixed(2)}.` + (reached ? ' The credential bar is reached.' : (r.n<BAR_N ? ` ${BAR_N-r.n} more moments to go.` : ' Forty moments in; kappa is still under the bar.')); }
-function refreshTallyUI(){ $('#btnResetTally').hidden=!tally.pairs.length; const r=tally.pairs.length ? kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])) : null; const bar=$('#cpBar'); if(r && !cpBusy){ bar.hidden=false; $('#cpFill').style.width=Math.round(Math.min(1, r.n/BAR_N)*100)+'%'; } }
+function refreshTallyUI(){ $('#btnResetTally').hidden=!tally.pairs.length; $('#btnSaveTally').hidden=!tally.pairs.length; const r=tally.pairs.length ? kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])) : null; const bar=$('#cpBar'); if(r && !cpBusy){ bar.hidden=false; $('#cpFill').style.width=Math.round(Math.min(1, r.n/BAR_N)*100)+'%'; } }
 function resetTally(){ tally={pairs:[]}; saveTally(); refreshTallyUI(); $('#cpBar').hidden=true; cpStatus('Tally cleared.'); }
 function kappa(a, b){
   // Cohen's kappa over two equal-length code sequences; 'none' is a category
@@ -1221,6 +1245,13 @@ $('#btnCalib').addEventListener('click', ()=>startCalibration(sample(), 'practic
 $('#btnScore').addEventListener('click', scoreCalibration);
 $('#btnLeaveCalib').addEventListener('click', leaveCalibration);
 $('#btnResetTally').addEventListener('click', resetTally);
+$('#btnSaveTally').addEventListener('click', ()=>{ saveFile('asterine-calibration-tally.json', JSON.stringify({asterine:'calibration-tally', saved:new Date().toISOString(), pairs:tally.pairs}, null, 1)); });
+$('#fileTally').addEventListener('change', async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(d.asterine!=='calibration-tally'||!Array.isArray(d.pairs)) throw new Error('not a tally file');
+    const add=d.pairs.filter(x=>Array.isArray(x)&&x.length===2);
+    if(tally.pairs.length && !await ask('Add the '+add.length+' moments in this file to the '+tally.pairs.length+' already on this computer? Use Reset tally first to start from the file alone.', 'Add')) return;
+    tally={pairs: tally.pairs.concat(add)}; saveTally(); refreshTallyUI(); cpStatus('Tally loaded.'+tallyLine()); }
+  catch(err){ toast('That is not an Asterine tally file.', 3000); } });
 $('#cpBlock').hidden = framed;
 if(tally.pairs.length){ $('#cpStatus').textContent += tallyLine(); } refreshTallyUI();
 $('#btnEnroll').addEventListener('click', enrollVoice);
