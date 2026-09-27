@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Classroom Moments Coder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
+<style>
+:root{
+  --paper:#E7E4DC; --surface:#F4F2ED; --raised:#FBFAF7; --line:#D5D0C4;
+  --ink:#1F1B16; --soft:#57503F; --mute:#8A8273;
+  --accent:#2B5D63; --accent-ink:#FFFFFF; --peach:#B9784A;
+  --rec:#A8342A;
+  --s-modeling:#C8412B; --s-scaffolding:#2F4B9E; --s-articulating:#9E6208; --s-exploring:#B8407A;
+  --s-coaching:#2E7D5B; --s-reflecting:#6B4FA0; --s-fading:#6B665C;
+  --chip-modeling:#C8412B; --chip-scaffolding:#2F4B9E; --chip-articulating:#D98B1F; --chip-exploring:#B8407A;
+  --chip-coaching:#2E7D5B; --chip-reflecting:#6B4FA0; --chip-fading:#84807A;
+  --sel:rgba(43,93,99,.16); --now:rgba(185,120,74,.14);
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#17140F; --surface:#201C16; --raised:#27221B; --line:#3A3328;
+    --ink:#EDE8DF; --soft:#B7AF9F; --mute:#7F776A;
+    --accent:#74BFC5; --accent-ink:#17140F; --peach:#DDA57E; --rec:#E0665A;
+    --s-modeling:#E8705C; --s-scaffolding:#8FA6E8; --s-articulating:#E6A84A; --s-exploring:#E27BB2;
+    --s-coaching:#66C296; --s-reflecting:#B39BE0; --s-fading:#B5B0A6;
+    --sel:rgba(116,191,197,.2); --now:rgba(221,165,126,.16);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#17140F; --surface:#201C16; --raised:#27221B; --line:#3A3328;
+  --ink:#EDE8DF; --soft:#B7AF9F; --mute:#7F776A;
+  --accent:#74BFC5; --accent-ink:#17140F; --peach:#DDA57E; --rec:#E0665A;
+  --s-modeling:#E8705C; --s-scaffolding:#8FA6E8; --s-articulating:#E6A84A; --s-exploring:#E27BB2;
+  --s-coaching:#66C296; --s-reflecting:#B39BE0; --s-fading:#B5B0A6;
+  --sel:rgba(116,191,197,.2); --now:rgba(221,165,126,.16);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible,.txt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1440px;margin:0 auto;padding:0 16px 48px}
+
+/* header */
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-block:22px 14px;border-bottom:1px solid var(--line)}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--peach);margin:0 0 8px}
+h1{font:500 30px/1.05 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 em{font-style:italic;font-weight:400}
+.head .meta{font:12px/1.4 var(--mono);color:var(--soft);font-variant-numeric:tabular-nums}
+.head .meta b{color:var(--ink);font-weight:600}
+.banner{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;margin-top:14px;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--peach);border-radius:8px;background:var(--surface);font-size:13.5px;color:var(--soft)}
+.banner a{color:var(--accent);font-weight:600;white-space:nowrap}
+
+/* layout */
+.app{display:grid;grid-template-columns:320px minmax(0,1fr) 220px;gap:24px;padding-top:20px;align-items:start}
+@media (max-width:1040px){.app{grid-template-columns:minmax(0,1fr);gap:16px}}
+.pane{position:sticky;top:env(safe-area-inset-top,0px);}
+@media (max-width:1040px){.pane{position:static}}
+h2{font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 10px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:3px;height:12px;background:var(--accent);border-radius:1px}
+h2.peach::before{background:var(--peach)}
+.block{margin-bottom:22px}
+
+/* media */
+.stage{position:relative;background:#0f0d0a;border-radius:8px;overflow:hidden;aspect-ratio:16/9;max-width:100%;border:1px solid var(--line)}
+.stage video{width:100%;height:100%;display:block;object-fit:contain;background:#0f0d0a}
+.stage.audio-only video{opacity:0}
+.stage .audio-mark{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#EDE8DF;font:500 13px var(--mono);letter-spacing:.06em}
+.stage.audio-only .audio-mark{display:flex}
+.audio-mark .bars{display:flex;gap:4px;align-items:flex-end;height:28px}
+.audio-mark .bars i{width:5px;background:var(--peach);border-radius:2px;height:8px;transition:height .12s}
+.stage .badge{position:absolute;top:8px;left:8px;background:rgba(15,13,10,.7);color:#EDE8DF;font:600 11px/1 var(--mono);padding:6px 8px;border-radius:4px;letter-spacing:.08em;display:none;align-items:center;gap:6px}
+.stage.recording .badge{display:flex}
+.stage .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rec);animation:blink 1.1s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.stage .badge::before{animation:none}}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 12px;font-weight:500;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--raised)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.rec{background:var(--rec);color:#fff;border-color:var(--rec)}
+.btn.small{padding:5px 9px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent}
+.segmented{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.segmented button{border:0;background:var(--surface);padding:7px 11px;font-size:13px}
+.segmented button.on{background:var(--ink);color:var(--paper)}
+.note{font-size:12.5px;color:var(--soft);margin:8px 0 0;line-height:1.45}
+.note.warn{color:var(--peach)}
+.timer{font:500 20px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);margin-top:10px;display:flex;align-items:baseline;gap:10px}
+.timer small{font-size:11px;color:var(--soft);letter-spacing:.08em;text-transform:uppercase}
+.interim{font-size:13px;color:var(--soft);font-style:italic;min-height:1.4em;margin-top:6px}
+.player{display:flex;align-items:center;gap:8px;margin-top:10px}
+.player input[type=range]{flex:1;accent-color:var(--accent)}
+.player .t{font:12px var(--mono);font-variant-numeric:tabular-nums;color:var(--soft);min-width:8ch;text-align:right}
+.filerow{display:flex;flex-wrap:wrap;gap:8px}
+.filerow label.btn{cursor:pointer}
+.filerow input{display:none}
+
+/* tally */
+.tally{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:13.5px}
+.tally .sw{width:10px;height:10px;border-radius:2px}
+.tally .n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right;min-width:2ch}
+.tally .lab{font-weight:600}
+.tally .total{grid-column:1/-1;border-top:1px solid var(--line);margin-top:4px;padding-top:6px;display:flex;justify-content:space-between;color:var(--soft);font-size:12.5px}
+
+/* transcript */
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px 22px;min-height:420px}
+.sheet-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.sheet-head .title{font:500 18px/1.2 var(--serif)}
+.sheet-head .tools{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font:600 10.5px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;border-radius:4px;background:var(--now);color:var(--peach)}
+.transcript{display:flex;flex-direction:column;gap:2px}
+.empty{color:var(--soft);padding:30px 10px;text-align:center;font-size:14px;line-height:1.6}
+.line{display:grid;grid-template-columns:5ch 3.4ch minmax(0,1fr) 22px;gap:0 8px;align-items:start;padding:5px 8px;border-radius:6px;position:relative}
+.line:hover{background:var(--raised)}
+.line.now{background:var(--now)}
+.line.pending{background:var(--sel);box-shadow:inset 3px 0 0 var(--accent)}
+.line .t{font:12px/1.85 var(--mono);font-variant-numeric:tabular-nums;color:var(--mute);cursor:pointer;user-select:none;padding-top:1px}
+.line .t:hover{color:var(--accent)}
+.line .who{font:600 13.5px/1.7 var(--sans);color:var(--soft);cursor:pointer;user-select:none;padding-top:1px}
+.line .who:hover{color:var(--accent)}
+.line .txt{font-size:15.5px;line-height:1.55;cursor:text;word-wrap:break-word;min-height:1.55em}
+.line .txt[contenteditable="true"]{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px;background:var(--raised)}
+.line .x{opacity:0;border:0;background:transparent;color:var(--mute);font-size:16px;line-height:1;padding:3px 4px;border-radius:4px;justify-self:end}
+.line:hover .x{opacity:.7}
+.line .x:hover{opacity:1;color:var(--rec);background:var(--raised)}
+.seg{color:var(--ink)}
+.seg[data-code]{font-weight:600}
+.seg[data-code="modeling"]{color:var(--s-modeling)}
+.seg[data-code="scaffolding"]{color:var(--s-scaffolding)}
+.seg[data-code="articulating"]{color:var(--s-articulating)}
+.seg[data-code="exploring"]{color:var(--s-exploring)}
+.seg[data-code="coaching"]{color:var(--s-coaching)}
+.seg[data-code="reflecting"]{color:var(--s-reflecting)}
+.seg[data-code="fading"]{color:var(--s-fading)}
+.transcript ::selection{background:var(--sel)}
+.addrow{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.paste{margin-top:12px;background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:12px}
+.paste textarea{width:100%;min-height:160px;resize:vertical;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:10px;font:14.5px/1.5 var(--sans)}
+.paste .row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:8px}
+.paste label{font-size:13px;color:var(--soft);display:flex;gap:6px;align-items:center}
+
+/* key */
+.key{display:flex;flex-direction:column;gap:7px}
+.chip{border:0;border-radius:6px;padding:9px 12px;color:#fff;font-weight:600;font-size:13.5px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;box-shadow:0 0 0 0 transparent;transition:transform .08s, box-shadow .12s}
+.chip kbd{font:11px var(--mono);opacity:.7;background:rgba(0,0,0,.18);padding:2px 5px;border-radius:3px}
+.chip:hover{transform:translateX(2px)}
+.chip.on{box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
+.chip.on::after{content:"active";font:600 9.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;position:absolute;right:38px;opacity:.8}
+.chip.clear{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.chip[data-code="modeling"]{background:var(--chip-modeling)}
+.chip[data-code="scaffolding"]{background:var(--chip-scaffolding)}
+.chip[data-code="articulating"]{background:var(--chip-articulating)}
+.chip[data-code="exploring"]{background:var(--chip-exploring)}
+.chip[data-code="coaching"]{background:var(--chip-coaching)}
+.chip[data-code="reflecting"]{background:var(--chip-reflecting)}
+.chip[data-code="fading"]{background:var(--chip-fading)}
+.howto{font-size:12.5px;color:var(--soft);line-height:1.5;margin:10px 0 0;padding-left:0;list-style:none}
+.howto li{padding-left:14px;position:relative;margin-bottom:5px}
+.howto li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--peach)}
+@media (max-width:1040px){
+  .key{flex-direction:row;flex-wrap:wrap}
+  .chip{flex:1 1 130px}
+  .chip.on::after{display:none}
+  .keypane{position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);padding-block:8px;z-index:3}
+}
+.exports{display:flex;flex-direction:column;gap:6px}
+.exports .btn{justify-content:flex-start}
+.veil{position:fixed;inset:0;background:rgba(23,20,15,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
+.ask{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:18px 20px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.ask p{margin:0 0 14px;line-height:1.5}
+.ask .row{display:flex;gap:8px;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:8px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:calc(100% - 32px)}
+.toast.show{opacity:1}
+.foot{margin-top:28px;font-size:12px;color:var(--mute);line-height:1.5}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <p class="eyebrow">Cognitive Apprenticeship</p>
+      <h1>Classroom Moments <em>Coder</em></h1>
+    </div>
+    <div class="meta" id="meta">no recording yet</div>
+  </header>
+  <div class="banner" id="banner" hidden><span>Inside claude.ai the camera, microphone and file downloads are switched off. Coding and <b>Copy in color</b> work here; recording and saving files use the desktop copy of this page.</span></div>
+
+  <div class="app">
+    <!-- ================= LEFT: media ================= -->
+    <aside>
+      <section class="block">
+        <h2>Record</h2>
+        <div class="stage audio-only" id="stage">
+          <video id="video" playsinline></video>
+          <div class="audio-mark"><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="audioLabel">audio</span></div>
+          <div class="badge">REC</div>
+        </div>
+        <div class="controls">
+          <div class="segmented" id="modeSeg">
+            <button type="button" data-mode="video" class="on" id="modeVideo">Video + audio</button>
+            <button type="button" data-mode="audio" id="modeAudio">Audio only</button>
+          </div>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn rec" id="btnRec">● Start recording</button>
+          <button type="button" class="btn" id="btnStop" disabled>■ Stop</button>
+        </div>
+        <div class="timer"><span id="clock">0:00</span><small id="clockLabel">ready</small></div>
+        <div class="interim" id="interim"></div>
+        <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. Use the desktop copy of this page.</p>
+        <p class="note" id="speechNote"></p>
+      </section>
+
+      <section class="block" id="playBlock" hidden>
+        <h2 class="peach">Play back</h2>
+        <div class="player">
+          <button type="button" class="btn small" id="btnPlay">▶</button>
+          <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Position">
+          <span class="t" id="ptime">0:00 / 0:00</span>
+        </div>
+        <label class="note" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="follow" checked> Follow the transcript while playing</label>
+      </section>
+
+      <section class="block">
+        <h2>Or bring a file</h2>
+        <div class="filerow">
+          <label class="btn small" for="fileMedia">Video / audio file<input type="file" id="fileMedia" accept="video/*,audio/*"></label>
+          <label class="btn small" for="fileText">Transcript (.srt .vtt .txt)<input type="file" id="fileText" accept=".srt,.vtt,.txt,text/plain"></label>
+          <label class="btn small" for="fileProj">Saved project (.json)<input type="file" id="fileProj" accept=".json,application/json"></label>
+          <button type="button" class="btn small" id="btnPasteOpen">Paste plain text</button>
+        </div>
+        <p class="note">An .srt made on your own computer loads with its timestamps.</p>
+      </section>
+
+      <section class="block">
+        <h2>Tally</h2>
+        <div class="tally" id="tally"></div>
+      </section>
+    </aside>
+
+    <!-- ================= CENTER: transcript ================= -->
+    <main>
+      <div class="sheet">
+        <div class="sheet-head">
+          <div class="title" id="sheetTitle">Transcript</div>
+          <div class="tools">
+            <span class="tag" id="sampleTag" hidden>sample</span>
+            <button type="button" class="btn small ghost" id="btnClearCodes">Uncode all</button>
+            <button type="button" class="btn small ghost" id="btnNew">New session</button>
+          </div>
+        </div>
+        <div class="transcript" id="transcript"></div>
+        <div class="addrow">
+          <button type="button" class="btn small" id="btnAddLine">+ Add a line</button>
+          <button type="button" class="btn small" id="btnPasteOpen2">Paste plain text</button>
+        </div>
+        <div class="paste" id="paste" hidden>
+          <textarea id="pasteBox" placeholder="Paste a transcript or any text here, one line per line. Speaker labels like T: and S: and times like 2:11 are picked up if they are there; nothing else is needed."></textarea>
+          <div class="row">
+            <label><input type="checkbox" id="pasteSplit" checked> Split long paragraphs into sentences</label>
+            <label><input type="checkbox" id="pasteAppend"> Add to the end instead of replacing</label>
+            <span style="flex:1"></span>
+            <button type="button" class="btn small ghost" id="btnPasteCancel">Cancel</button>
+            <button type="button" class="btn small primary" id="btnPasteUse">Use this text</button>
+          </div>
+        </div>
+      </div>
+      <p class="foot">Click a line or drag over words to color them. Double-click to edit. Click the speaker to change it, the time to play from there. Saves in this browser as you go.</p>
+    </main>
+
+    <!-- ================= RIGHT: key ================= -->
+    <aside class="pane keypane">
+      <section class="block">
+        <h2>Color key</h2>
+        <div class="key" id="key"></div>
+        <ul class="howto">
+          <li>Pick a strategy, then click lines or drag over words.</li>
+          <li>Pick another strategy and click again to change it.</li>
+          <li>Keys 1 to 7 pick a strategy, 0 uncodes.</li>
+        </ul>
+      </section>
+      <section class="block">
+        <h2 class="peach">Download</h2>
+        <div class="exports">
+          <button type="button" class="btn small primary" id="copyRich">Copy in color (paste into Word or Docs)</button>
+          <button type="button" class="btn small" id="dlDocx">Word, in color (.docx)</button>
+          <button type="button" class="btn small" id="dlHtml">Web page, in color (.html)</button>
+          <button type="button" class="btn small" id="dlTxt">Plain text, no color (.txt)</button>
+          <button type="button" class="btn small" id="dlJson">Project to reopen (.json)</button>
+          <button type="button" class="btn small" id="dlMedia" disabled>Recording (.webm)</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const STRATS = [
+  {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
+  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
+  {key:'articulating', name:'Articulating', chip:'#D98B1F', text:'#9E6208'},
+  {key:'exploring',    name:'Exploring',    chip:'#B8407A', text:'#B8407A'},
+  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
+  {key:'reflecting',   name:'Reflecting',   chip:'#6B4FA0', text:'#6B4FA0'},
+  {key:'fading',       name:'Fading',       chip:'#84807A', text:'#6B665C'},
+];
+const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
+const WHO = ['T','S','Ss',''];
+
+/* ---------------- state ---------------- */
+const framed=(()=>{ try{ return window.top!==window.self; }catch(e){ return true; } })();
+let state = { title:'Transcript', lines:[], createdAt:null, mediaName:null, sample:false };
+let mediaBlob = null, mediaType = '';
+let active = null;          // strategy key, 'clear', or null
+let pending = null;         // {a:{li,off}, b:{li,off}} waiting for a strategy
+let editing = null;         // line index being edited
+let dirty = false;
+
+const sample = () => ({
+  title:'Sample - Bob Ross, Season 29 Episode 1', sample:true, createdAt:Date.now(), mediaName:null,
+  lines:[
+    {t:131, who:'T', segs:[{text:"Okay, without even cleaning the brush, we'll go right into a little phthalo blue. I like phthalo blue - ", code:'modeling'},{text:"it's a very warm blue, very nice.", code:'articulating'}]},
+    {t:139, who:'T', segs:[{text:"Once again, just tap a little color into it, and let's go back up here, still using our little criss-cross strokes - X's. ", code:'modeling'},{text:"That's all they are, little X's.", code:'articulating'}]},
+    {t:148, who:'T', segs:[{text:"We'll just apply a little bit of the phthalo blue, something about like so. ", code:'modeling'},{text:"Then we'll come back after we clean the brush and blend that together.", code:'scaffolding'}]},
+    {t:157, who:'T', segs:[{text:"Now the blue is many, many times stronger than this little pink area. It'll just eat it up - so be careful, be careful. It'll all go away.", code:null}]},
+    {t:166, who:'T', segs:[{text:"If you wanted to make the indication of a happy little cloud, all you do is just sort of tap. Little stringy cloud just lives right there in the brush - and that easy.", code:null}]},
+    {t:176, who:'T', segs:[{text:"We'll blend him out, have a little stringier cloud. There.", code:null}]},
+  ]
+});
+
+/* ---------------- helpers ---------------- */
+const fmt = s => { if(s==null) return '–'; s = Math.max(0, Math.floor(s||0)); const m = Math.floor(s/60), r = s%60; return m + ':' + String(r).padStart(2,'0'); };
+const lineText = l => l.segs.map(s => s.text).join('');
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function ask(msg, yes){
+  msg = msg || 'Are you sure?'; yes = yes || 'Yes';
+  return new Promise(res=>{
+    document.querySelectorAll('.veil').forEach(v=>v.remove());     // always a fresh dialog, never a restored one
+    const veil=document.createElement('div'); veil.className='veil';
+    const box=document.createElement('div'); box.className='ask'; box.setAttribute('role','dialog'); box.setAttribute('aria-modal','true');
+    const p=document.createElement('p'); p.textContent=msg;
+    const row=document.createElement('div'); row.className='row';
+    const no=document.createElement('button'); no.type='button'; no.className='btn small ghost'; no.textContent='Cancel';
+    const ok=document.createElement('button'); ok.type='button'; ok.className='btn small primary'; ok.textContent=yes;
+    row.append(no, ok); box.append(p, row); veil.append(box); document.body.appendChild(veil); ok.focus();
+    const done=v=>{ veil.remove(); document.removeEventListener('keydown', esc, true); res(v); };
+    const esc=e=>{ if(e.key==='Escape'){ e.stopPropagation(); done(false); } };
+    ok.onclick=()=>done(true); no.onclick=()=>done(false); veil.onclick=e=>{ if(e.target===veil) done(false); };
+    document.addEventListener('keydown', esc, true);
+  });
+}
+function toast(msg, ms=2200){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._h); toast._h=setTimeout(()=>t.classList.remove('show'), ms); }
+function normalize(l){ // merge adjacent equal codes, drop empties
+  const out=[]; for(const s of l.segs){ if(!s.text) continue; const p=out[out.length-1]; if(p && p.code===s.code) p.text+=s.text; else out.push({text:s.text, code:s.code||null}); }
+  if(!out.length) out.push({text:'', code:null}); l.segs=out;
+}
+function applyCode(a, b, code){ // a,b = {li,off}; code = key or null
+  if(a.li>b.li || (a.li===b.li && a.off>b.off)) [a,b]=[b,a];
+  for(let i=a.li;i<=b.li;i++){
+    const l=state.lines[i]; const text=lineText(l);
+    const from = i===a.li ? a.off : 0, to = i===b.li ? b.off : text.length;
+    if(to<=from) continue;
+    const segs=[]; let pos=0;
+    for(const s of l.segs){
+      const s0=pos, s1=pos+s.text.length; pos=s1;
+      const cut=(x,y,c)=>{ if(y>x) segs.push({text:s.text.slice(x-s0,y-s0), code:c}); };
+      cut(s0, Math.min(s1, Math.max(s0,from)), s.code);
+      cut(Math.max(s0,from), Math.min(s1,to), code);
+      cut(Math.max(s0, Math.min(s1,to)), s1, s.code);
+    }
+    l.segs=segs; normalize(l);
+  }
+  changed();
+}
+
+/* ---------------- render ---------------- */
+function renderKey(){
+  const k=$('#key'); k.innerHTML='';
+  STRATS.forEach((s,i)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='chip'; b.dataset.code=s.key;
+    b.innerHTML=`<span>${s.name}</span><kbd>${i+1}</kbd>`;
+    b.addEventListener('mousedown', e=>e.preventDefault());
+    b.addEventListener('click', ()=>pick(s.key));
+    k.appendChild(b);
+  });
+  const c=document.createElement('button'); c.type='button'; c.className='chip clear'; c.dataset.code='clear';
+  c.innerHTML='<span>Uncode (black)</span><kbd>0</kbd>';
+  c.addEventListener('mousedown', e=>e.preventDefault());
+  c.addEventListener('click', ()=>pick('clear'));
+  k.appendChild(c);
+  updateKey();
+}
+function updateKey(){ document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on', b.dataset.code===active)); }
+function renderTally(){
+  const counts=Object.fromEntries(STRATS.map(s=>[s.key,0])); let total=0;
+  for(const l of state.lines) for(const s of l.segs) if(s.code && s.text.trim()){ counts[s.code]++; total++; }
+  const t=$('#tally'); t.innerHTML='';
+  for(const s of STRATS){
+    t.insertAdjacentHTML('beforeend', `<span class="sw" style="background:${s.chip}"></span><span class="lab" style="color:var(--s-${s.key})">${s.name}</span><span class="n">${counts[s.key]}</span>`);
+  }
+  t.insertAdjacentHTML('beforeend', `<div class="total"><span>coded spans</span><span>${total}</span></div>`);
+}
+function renderLine(i){
+  const l=state.lines[i];
+  const d=document.createElement('div'); d.className='line'; d.dataset.i=i;
+  const t=document.createElement('span'); t.className='t'; t.textContent=fmt(l.t); t.title='Jump playback here';
+  const w=document.createElement('span'); w.className='who'; w.textContent=l.who?l.who+':':'·'; w.title='Change speaker';
+  const x=document.createElement('span'); x.className='txt';
+  for(const s of l.segs){ const sp=document.createElement('span'); sp.className='seg'; if(s.code) sp.dataset.code=s.code; sp.textContent=s.text; x.appendChild(sp); }
+  const del=document.createElement('button'); del.type='button'; del.className='x'; del.textContent='×'; del.title='Delete this line';
+  d.append(t,w,x,del);
+  return d;
+}
+function renderTranscript(){
+  const tr=$('#transcript'); tr.innerHTML='';
+  if(!state.lines.length){ tr.innerHTML='<div class="empty">Nothing here yet. Start a recording, bring in a file on the left, or paste plain text below.</div>'; }
+  else state.lines.forEach((_,i)=>tr.appendChild(renderLine(i)));
+  $('#sheetTitle').textContent=state.title||'Transcript';
+  $('#sampleTag').hidden=!state.sample;
+  renderTally(); renderMeta();
+}
+function rerenderLine(i){ const old=$(`.line[data-i="${i}"]`); if(old) old.replaceWith(renderLine(i)); else renderTranscript(); renderTally(); }
+function renderMeta(){
+  const n=state.lines.length; const timed=state.lines.filter(l=>l.t!=null); const last=timed.length?fmt(timed[timed.length-1].t):'–';
+  $('#meta').innerHTML = n ? `<b>${n}</b> lines · <b>${last}</b> · ${state.mediaName?esc(state.mediaName):(mediaBlob?'recorded here':'no media')}` : 'no recording yet';
+}
+function changed(){ dirty=true; renderTranscript(); scheduleSave(); }
+
+/* ---------------- coding interactions ---------------- */
+function pick(code){
+  if(pending){ applyCode(pending.a, pending.b, code==='clear'?null:code); pending=null; window.getSelection()?.removeAllRanges(); }
+  active = (active===code) ? null : code;   // click the active one again to put the tool down
+  updateKey();
+  if(active) toast(active==='clear' ? 'Uncode: click a line or drag over words' : BY[active].name + ': click a line or drag over words', 1600);
+}
+function pointOf(node, offset){
+  const line = (node.nodeType===1?node:node.parentNode).closest?.('.line'); if(!line) return null;
+  const li=+line.dataset.i; const txt=line.querySelector('.txt'); const text=lineText(state.lines[li]);
+  if(!txt.contains(node)) { // clicked the time or speaker: snap to start or end
+    return {li, off: (node.compareDocumentPosition(txt) & Node.DOCUMENT_POSITION_FOLLOWING) ? 0 : text.length};
+  }
+  let off=0; const walker=document.createTreeWalker(txt, NodeFilter.SHOW_TEXT);
+  if(node.nodeType===3){ let n; while((n=walker.nextNode())){ if(n===node){ off+=offset; break; } off+=n.data.length; } }
+  else { // element node: offset counts children
+    const kids=[...node.childNodes].slice(0,offset); for(const k of kids) off+=k.textContent.length;
+    if(node!==txt){ let n; const w2=document.createTreeWalker(txt, NodeFilter.SHOW_TEXT); let before=0; while((n=w2.nextNode())){ if(node.contains(n)) break; before+=n.data.length; } off+=before; }
+  }
+  return {li, off:Math.min(off,text.length)};
+}
+function currentSelectionRange(){
+  const sel=window.getSelection(); if(!sel||!sel.rangeCount||sel.isCollapsed) return null;
+  const r=sel.getRangeAt(0); const tr=$('#transcript');
+  if(!tr.contains(r.startContainer)||!tr.contains(r.endContainer)) return null;
+  const a=pointOf(r.startContainer,r.startOffset), b=pointOf(r.endContainer,r.endOffset); if(!a||!b) return null;
+  if(a.li===b.li && a.off===b.off) return null;
+  return {a,b};
+}
+$('#transcript').addEventListener('mouseup', e=>{
+  if(editing!==null) return;
+  const range=currentSelectionRange();
+  if(range){ if(active){ applyCode(range.a, range.b, active==='clear'?null:active); window.getSelection().removeAllRanges(); } else { pending=range; } return; }
+  const line=e.target.closest('.line'); if(!line) return;
+  if(e.target.closest('.t')||e.target.closest('.who')||e.target.closest('.x')) return;
+  const li=+line.dataset.i, len=lineText(state.lines[li]).length;
+  if(active){ applyCode({li,off:0},{li,off:len}, active==='clear'?null:active); }
+  else { document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); pending={a:{li,off:0},b:{li,off:len}}; line.classList.add('pending'); toast('Now pick a strategy from the key', 1500); }
+});
+document.addEventListener('selectionchange', ()=>{ // touch selections land here
+  if(editing!==null) return; const r=currentSelectionRange(); if(r) pending=r;
+});
+$('#transcript').addEventListener('click', e=>{
+  const line=e.target.closest('.line'); if(!line) return; const li=+line.dataset.i;
+  if(e.target.closest('.t')){ seek(state.lines[li].t); return; }
+  if(e.target.closest('.who')){ const l=state.lines[li]; l.who=WHO[(WHO.indexOf(l.who)+1)%WHO.length]; rerenderLine(li); scheduleSave(); return; }
+  if(e.target.closest('.x')){ state.lines.splice(li,1); changed(); return; }
+});
+$('#transcript').addEventListener('dblclick', e=>{
+  const txt=e.target.closest('.txt'); if(!txt) return; startEdit(+txt.closest('.line').dataset.i, txt);
+});
+function startEdit(li, txt){
+  if(editing!==null) return;
+  editing=li; active=null; updateKey(); pending=null;
+  const before=lineText(state.lines[li]);
+  txt.contentEditable='true'; txt.focus();
+  const finish=(cancel)=>{
+    txt.contentEditable='false'; editing=null;
+    const after=txt.textContent;
+    if(cancel||after===before){ rerenderLine(li); return; }
+    const l=state.lines[li]; const uniform=l.segs.every(s=>s.code===l.segs[0].code)?l.segs[0].code:null;
+    l.segs=[{text:after, code:uniform}]; normalize(l); changed();
+  };
+  txt.addEventListener('blur', ()=>finish(false), {once:true});
+  txt.addEventListener('keydown', ev=>{
+    if(ev.key==='Escape'){ ev.preventDefault(); txt.blur(); }
+    if(ev.key==='Enter'){ ev.preventDefault();
+      const sel=window.getSelection(); const p=pointOf(sel.anchorNode, sel.anchorOffset); const cut=p?p.off:txt.textContent.length;
+      const all=txt.textContent; const l=state.lines[li];
+      txt.textContent=all.slice(0,cut); txt.blur();
+      const rest=all.slice(cut).replace(/^\s+/,''); if(rest){ state.lines.splice(li+1,0,{t:l.t, who:l.who, segs:[{text:rest, code:null}]}); changed(); }
+    }
+  });
+}
+document.addEventListener('keydown', e=>{
+  if(editing!==null || e.target.matches('input,textarea,[contenteditable="true"]') || e.metaKey||e.ctrlKey||e.altKey) return;
+  if(e.key>='1'&&e.key<='7'){ pick(STRATS[+e.key-1].key); }
+  else if(e.key==='0'){ pick('clear'); }
+  else if(e.key==='Escape'){ active=null; pending=null; updateKey(); document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); }
+  else if(e.key===' ' && mediaBlob && !recording){ e.preventDefault(); togglePlay(); }
+});
+$('#btnClearCodes').addEventListener('click', async ()=>{ if(!state.lines.length) return; if(!await ask('Remove every color from this transcript? The words stay.', 'Uncode all')) return; for(const l of state.lines){ l.segs=[{text:lineText(l), code:null}]; } changed(); toast('All colors removed'); });
+$('#btnAddLine').addEventListener('click', ()=>{ const last=state.lines[state.lines.length-1]; state.lines.push({t: last?last.t:null, who:'T', segs:[{text:'', code:null}]}); state.sample=false; changed(); const txt=$(`.line[data-i="${state.lines.length-1}"] .txt`); if(txt) startEdit(state.lines.length-1, txt); });
+const openPaste=()=>{ $('#paste').hidden=false; $('#pasteBox').focus(); $('#paste').scrollIntoView({block:'nearest'}); };
+$('#btnPasteOpen').addEventListener('click', openPaste); $('#btnPasteOpen2').addEventListener('click', openPaste);
+$('#btnPasteCancel').addEventListener('click', ()=>{ $('#paste').hidden=true; });
+$('#btnPasteUse').addEventListener('click', async ()=>{
+  const text=$('#pasteBox').value; const lines=parseTranscript(text, 'pasted.txt', {split:$('#pasteSplit').checked});
+  if(!lines.length){ toast('Nothing to use - paste some text first', 2000); return; }
+  const append=$('#pasteAppend').checked && state.lines.length && !state.sample;
+  if(!append && state.lines.length && !state.sample && !await ask('Replace the current transcript with the pasted text?', 'Replace')) return;
+  if(append) state.lines=state.lines.concat(lines); else { state.lines=lines; if(!mediaBlob) state.title='Pasted text ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+  state.sample=false; $('#pasteBox').value=''; $('#paste').hidden=true; changed(); toast(lines.length+' lines ready to code');
+});
+$('#btnNew').addEventListener('click', async ()=>{ if(recording){ toast('Stop the recording first', 1800); return; } if(state.lines.length && !state.sample && !await ask('Start a new session? The current transcript and recording are cleared from this browser. Download the project first if you want to keep it.', 'New session')) return; resetAll(); toast('New session'); });
+function resetAll(){ stopPlaybackMedia(); mediaBlob=null; mediaType=''; state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
+
+/* ---------------- recording ---------------- */
+let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null;
+$('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const speechOK = !!SR;
+$('#speechNote').textContent = speechOK
+  ? 'Transcribes live as you record (via the browser\'s speech service).'
+  : 'No live transcription in this browser - Chrome, Edge or Safari have it. Recording still works.';
+if(!speechOK) $('#speechNote').classList.add('warn');
+const elapsed = () => (performance.now()-t0)/1000;
+
+const policyAllows=(()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; if(pp && pp.allowsFeature) return pp.allowsFeature('microphone') || pp.allowsFeature('camera'); }catch(e){} return null; })();
+if(!framed && policyAllows===false){ $('#framedNote').hidden=false; $('#framedNote').innerHTML='This site does not allow the camera or microphone, so recording cannot run here. Open a local copy of this page to record, or bring a recording and transcript in below.'; }
+if(framed){ $('#framedNote').hidden=false; $('#banner').hidden=false; }
+$('#btnRec').addEventListener('click', startRecording);
+$('#btnStop').addEventListener('click', stopRecording);
+async function startRecording(){
+  if(recording) return;
+  if(state.sample) { state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false}; }
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}, video: mode==='video' ? {width:{ideal:1280}, height:{ideal:720}, facingMode:'user'} : false });
+  }catch(err){
+    const msg = err && (err.name==='NotAllowedError'||err.name==='SecurityError') ? (framed ? 'Recording is off inside claude.ai. Use the desktop copy of this page.' : (policyAllows===false ? 'This site does not allow the camera or microphone. Open a local copy of the page to record.' : 'The camera or microphone was blocked. Click the camera icon in the address bar, allow it for this site, and try again.')) : 'Could not start the ' + (mode==='video'?'camera':'microphone') + ': ' + (err&&err.message||err);
+    toast(msg, 6000); if(framed){ $('#framedNote').hidden=false; $('#framedNote').scrollIntoView({block:'nearest'}); } return;
+  }
+  stopPlaybackMedia();
+  const v=$('#video'); v.srcObject=stream; v.muted=true; v.controls=false; v.play().catch(()=>{});
+  $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='recording audio';
+  meter(stream);
+  const cands = mode==='video' ? ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'] : ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+  mediaType = cands.find(c=>window.MediaRecorder && MediaRecorder.isTypeSupported(c)) || '';
+  chunks=[];
+  try{ rec = mediaType ? new MediaRecorder(stream,{mimeType:mediaType}) : new MediaRecorder(stream); }catch(err){ toast('Recording is not supported in this browser: '+err.message, 5000); stream.getTracks().forEach(t=>t.stop()); return; }
+  mediaType = rec.mimeType || mediaType;
+  rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = onRecStopped;
+  rec.start(1000);
+  recording=true; t0=performance.now(); state.createdAt=Date.now(); state.mediaName=null; state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true;
+  clockTimer=setInterval(()=>{ $('#clock').textContent=fmt(elapsed()); }, 250);
+  renderTranscript(); startSpeech();
+}
+function stopRecording(){ if(!recording) return; recording=false; clearInterval(clockTimer); stopSpeech(); try{ rec.stop(); }catch(e){ onRecStopped(); } }
+function onRecStopped(){
+  stream && stream.getTracks().forEach(t=>t.stop()); stream=null; stopMeter();
+  mediaBlob = new Blob(chunks, {type: mediaType || 'video/webm'}); chunks=[];
+  $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
+  loadPlayback(); saveMedia(); scheduleSave(); toast('Recording saved in this browser. Now code the transcript.', 2600);
+}
+function startSpeech(){
+  if(!SR) return;
+  sr = new SR(); sr.continuous=true; sr.interimResults=true; sr.lang='en-US'; sr.maxAlternatives=1; srSeen={};
+  sr.onstart=()=>{ srSeen={}; };
+  sr.onresult = e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i]; if(srSeen[i]==null) srSeen[i]=Math.max(0, elapsed()-1.2);
+      if(r.isFinal){ const txt=(r[0].transcript||'').trim(); if(txt && !srSeen['done'+i]){ srSeen['done'+i]=true; addLive(srSeen[i], txt); } }
+      else interim += r[0].transcript;
+    }
+    $('#interim').textContent=interim;
+  };
+  sr.onerror = e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ $('#speechNote').textContent='Speech recognition was blocked, so this recording has no live transcript. You can type lines in by hand or bring a transcript file.'; $('#speechNote').classList.add('warn'); sr=null; } };
+  sr.onend = ()=>{ if(recording && sr){ try{ sr.start(); }catch(e){} } };
+  try{ sr.start(); }catch(e){}
+}
+function stopSpeech(){ if(sr){ const s=sr; sr=null; try{ s.stop(); }catch(e){} } }
+function addLive(t, text){
+  const cap = text.charAt(0).toUpperCase()+text.slice(1); const punct=/[.?!]$/.test(cap)?cap:cap+'.';
+  state.lines.push({t, who:'T', segs:[{text:punct, code:null}]});
+  const tr=$('#transcript'); if(state.lines.length===1) tr.innerHTML=''; tr.appendChild(renderLine(state.lines.length-1));
+  tr.lastElementChild.scrollIntoView({block:'nearest'}); renderMeta(); scheduleSave();
+}
+function meter(s){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)(); const src=ctx.createMediaStreamSource(s); analyser=ctx.createAnalyser(); analyser.fftSize=64; src.connect(analyser);
+    const data=new Uint8Array(analyser.frequencyBinCount); const bars=[...$('#bars').children];
+    const tick=()=>{ analyser.getByteFrequencyData(data); bars.forEach((b,i)=>{ const v=data[Math.floor(i*data.length/bars.length)]||0; b.style.height=(6+v/255*22)+'px'; }); raf=requestAnimationFrame(tick); };
+    tick(); meter.ctx=ctx;
+  }catch(e){}
+}
+function stopMeter(){ cancelAnimationFrame(raf); raf=null; try{ meter.ctx && meter.ctx.close(); }catch(e){} [...$('#bars').children].forEach(b=>b.style.height='8px'); }
+
+/* ---------------- playback ---------------- */
+const v=$('#video');
+function loadPlayback(){
+  if(!mediaBlob) return;
+  v.srcObject=null; v.muted=false; v.controls=false; v.src=URL.createObjectURL(mediaBlob);
+  const isVideo = (mediaBlob.type||mediaType||'').startsWith('video');
+  $('#stage').classList.toggle('audio-only', !isVideo); $('#audioLabel').textContent='audio recording';
+  $('#playBlock').hidden=false; $('#dlMedia').disabled=false; $('#dlMedia').textContent='Recording (.' + ext(mediaBlob.type) + ')';
+  v.onloadedmetadata=()=>{ if(!isFinite(v.duration)){ // webm from MediaRecorder often lacks duration: nudge it
+      v.currentTime=1e9; v.ontimeupdate=()=>{ v.ontimeupdate=null; v.currentTime=0; updateTime(); }; } updateTime(); };
+  renderMeta();
+}
+function stopPlaybackMedia(){ try{ v.pause(); }catch(e){} if(v.src){ URL.revokeObjectURL(v.src); v.removeAttribute('src'); v.load(); } }
+function ext(type){ type=type||''; if(type.includes('mp4')) return 'mp4'; if(type.includes('ogg')) return 'ogg'; if(type.includes('wav')) return 'wav'; if(type.includes('mpeg')) return 'mp3'; return 'webm'; }
+function togglePlay(){ if(v.paused) v.play().catch(()=>{}); else v.pause(); }
+$('#btnPlay').addEventListener('click', togglePlay);
+v.addEventListener('play', ()=>$('#btnPlay').textContent='❚❚'); v.addEventListener('pause', ()=>$('#btnPlay').textContent='▶');
+function seek(t){ if(t==null) return; if(!mediaBlob) { toast('No recording to play for this transcript', 1400); return; } v.currentTime=Math.max(0,t); v.play().catch(()=>{}); }
+function updateTime(){ const d=isFinite(v.duration)?v.duration:0; $('#ptime').textContent=fmt(v.currentTime)+' / '+fmt(d); if(d) $('#scrub').value=Math.round(v.currentTime/d*1000); }
+v.addEventListener('timeupdate', ()=>{
+  updateTime(); if(recording) return;
+  const ct=v.currentTime; let idx=-1; for(let i=0;i<state.lines.length;i++){ const lt=state.lines[i].t; if(lt==null) continue; if(lt<=ct+0.05) idx=i; else break; }
+  document.querySelectorAll('.line.now').forEach(x=>{ if(+x.dataset.i!==idx) x.classList.remove('now'); });
+  if(idx>=0){ const el=$(`.line[data-i="${idx}"]`); if(el && !el.classList.contains('now')){ el.classList.add('now'); if($('#follow').checked && !v.paused) el.scrollIntoView({block:'nearest', behavior:'smooth'}); } }
+});
+$('#scrub').addEventListener('input', e=>{ const d=isFinite(v.duration)?v.duration:0; if(d) v.currentTime=e.target.value/1000*d; });
+
+/* ---------------- files in ---------------- */
+$('#fileMedia').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; if(recording) return; stopPlaybackMedia(); mediaBlob=f; mediaType=f.type; state.mediaName=f.name; if(state.sample){ state.lines=[]; state.sample=false; state.title=f.name.replace(/\.[^.]+$/,''); } loadPlayback(); saveMedia(); changed(); toast('Media loaded. Bring a transcript, or type lines in.'); e.target.value=''; });
+$('#fileText').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; const text=await f.text(); const lines=parseTranscript(text, f.name); if(!lines.length){ toast('No lines found in that file', 2500); return; } if(state.lines.length && !state.sample && !await ask('Replace the current transcript with this file?', 'Replace')) return; state.lines=lines; state.sample=false; if(!state.mediaName && !mediaBlob) state.title=f.name.replace(/\.[^.]+$/,''); changed(); toast(lines.length+' lines loaded'); e.target.value=''; });
+$('#fileProj').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; try{ const p=JSON.parse(await f.text()); if(!p||!Array.isArray(p.lines)) throw 0; state={title:p.title||'Transcript', lines:p.lines.map(l=>({t:(l.t==null?null:+l.t||0), who:l.who||'', segs:(l.segs||[]).map(s=>({text:String(s.text||''), code:BY[s.code]?s.code:null}))})), createdAt:p.createdAt||Date.now(), mediaName:p.mediaName||null, sample:false}; state.lines.forEach(normalize); changed(); toast('Project loaded' + (p.mediaName?' - bring in '+p.mediaName+' to play it back':'')); }catch(err){ toast('That is not a project file from this page', 2500); } e.target.value=''; });
+function parseTranscript(text, name, opts={}){
+  const out=[]; const ts=s=>{ const m=s.match(/(\d+):(\d\d):(\d\d)[.,](\d+)/)||s.match(/(\d+):(\d\d)[.,](\d+)/); if(!m) return null; return m.length===5 ? (+m[1]*3600+ +m[2]*60+ +m[3]) : (+m[1]*60+ +m[2]); };
+  const who=s=>{ const m=s.match(/^\s*(Ss|S|T|Teacher|Student|Students)\s*[:.-]\s*/i); if(!m) return ['',s]; const w=m[1].toLowerCase(); return [w.startsWith('ss')||w.startsWith('students')?'Ss':w.startsWith('s')?'S':'T', s.slice(m[0].length)]; };
+  const blocks=text.replace(/\r/g,'').split(/\n{2,}/);
+  const looksTimed = /-->/.test(text);
+  if(looksTimed){
+    for(const b of blocks){ const ls=b.split('\n').filter(x=>x.trim()); const ti=ls.findIndex(x=>x.includes('-->')); if(ti<0) continue; const t=ts(ls[ti].split('-->')[0]); const body=ls.slice(ti+1).join(' ').replace(/<[^>]+>/g,'').trim(); if(!body) continue; const [w,txt]=who(body); out.push({t:t??(out.length?out[out.length-1].t:0), who:w, segs:[{text:txt, code:null}]}); }
+  } else {
+    let last=null; for(const raw of text.replace(/\r/g,'').split('\n')){ let s=raw.trim(); if(!s) continue; let t=null; const m=s.match(/^\[?((?:\d+:)?\d+:\d\d)\]?\s*/); if(m){ t=ts(m[1]+'.0'); s=s.slice(m[0].length); } const [w,txt]=who(s); if(!txt.trim()) continue; if(t!=null) last=t; const body=txt.trim(); if(opts.split && body.length>140 && !/^\S+:/.test(body)){ for(const sent of body.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g)||[body]){ if(sent.trim()) out.push({t:last, who:w, segs:[{text:sent.trim(), code:null}]}); } } else out.push({t:last, who:w, segs:[{text:body, code:null}]}); }
+  }
+  return out;
+}
+
+/* ---------------- files out ---------------- */
+async function saveFile(filename, data){
+  if(framed){ toast('File downloads are off inside claude.ai. Use "Copy in color" to paste into Word or Docs, or the desktop copy of this page.', 6000); return; }
+  const blob = data instanceof Blob ? data : new Blob([data], {type:'application/octet-stream'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); toast('Downloading '+filename);
+}
+const stem = () => (state.title||'transcript').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').slice(0,60) || 'transcript';
+function tallyRows(){ const c=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const s of l.segs) if(s.code&&s.text.trim()) c[s.code]++; return STRATS.map(s=>[s,c[s.key]]); }
+function exportHtml(){
+  const rows=tallyRows();
+  const lines=state.lines.map(l=>`<div class="line"><span class="t">${fmt(l.t)}</span><span class="who">${l.who?esc(l.who)+':':''}</span><span class="txt">${l.segs.map(s=>s.code?`<b style="color:${BY[s.code].text}">${esc(s.text)}</b>`:esc(s.text)).join('')}</span></div>`).join('\n');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(state.title||'Coded transcript')}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
+<style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
+<p class="eyebrow">Cognitive Apprenticeship · Classroom Moments</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${state.lines.length?fmt(state.lines[state.lines.length-1].t):'0:00'} · coded ${new Date().toLocaleDateString()}</div>
+<div class="grid"><div class="card">${lines||'<p>No lines.</p>'}</div>
+<aside><h2>Color key</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n}</span></span>`).join('')}<div class="tally"><div><span>coded spans</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div></div></body></html>`;
+}
+function exportTxt(){
+  const rows=tallyRows();
+  const head=[(state.title||'Transcript'), 'Cognitive Apprenticeship - Classroom Moments', 'Coded '+new Date().toLocaleString(), '', 'TALLY', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n}`), '', 'TRANSCRIPT  (coded spans are wrapped like {Modeling: ...})', ''];
+  const body=state.lines.map(l=>`${fmt(l.t).padStart(5)}  ${(l.who?l.who+':':'').padEnd(3)} ` + l.segs.map(s=>s.code?`{${BY[s.code].name}: ${s.text}}`:s.text).join(''));
+  return head.concat(body).join('\n')+'\n';
+}
+async function exportDocx(){
+  if(!window.JSZip) throw new Error('The Word builder did not load');
+  const X=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const run=(t,{color,b,sz,font,i}={})=>`<w:r><w:rPr>${font?`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}"/>`:''}${b?'<w:b/>':''}${i?'<w:i/>':''}${color?`<w:color w:val="${color}"/>`:''}${sz?`<w:sz w:val="${sz}"/>`:''}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
+  const para=(runs,{after=120,before=0,ind}={})=>`<w:p><w:pPr><w:spacing w:before="${before}" w:after="${after}"/>${ind?`<w:ind w:left="${ind}" w:hanging="${ind}"/>`:''}</w:pPr>${runs}</w:p>`;
+  const rows=tallyRows();
+  let body='';
+  body+=para(run('COGNITIVE APPRENTICESHIP · CLASSROOM MOMENTS',{color:'B9784A',b:true,sz:18}),{after:60});
+  body+=para(run(state.title||'Coded transcript',{font:'Georgia',sz:44,b:false}),{after:80});
+  body+=para(run(`${state.lines.length} lines · coded ${new Date().toLocaleDateString()}`,{color:'6B665C',sz:18}),{after:240});
+  body+=para(run('TALLY',{color:'6B665C',b:true,sz:18}),{after:60});
+  for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n}`,{color:'23211D'}),{after:20});
+  body+=para(run(`coded spans   ${rows.reduce((a,[,n])=>a+n,0)}`,{color:'6B665C',sz:18}),{after:240,before:60});
+  body+=para(run('TRANSCRIPT',{color:'6B665C',b:true,sz:18}),{after:80});
+  for(const l of state.lines){
+    let r=run(fmt(l.t).padStart(5)+'  ',{color:'8A867E',font:'Menlo',sz:18});
+    if(l.who) r+=run(l.who+': ',{color:'6B665C',b:true});
+    for(const sg of l.segs) r+=sg.code ? run(sg.text,{color:BY[sg.code].text.slice(1),b:true}) : run(sg.text,{color:'23211D'});
+    body+=para(r,{after:100,ind:900});
+  }
+  body+=para(run('Color key: ',{color:'6B665C',sz:18})+STRATS.map(st=>run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})).join(''),{before:240});
+  const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1200" w:right="1200" w:bottom="1200" w:left="1200" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`;
+  const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
+  const rels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  const drels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+  const zip=new JSZip(); zip.file('[Content_Types].xml',ct); zip.file('_rels/.rels',rels); zip.file('word/document.xml',doc); zip.file('word/styles.xml',styles); zip.file('word/_rels/document.xml.rels',drels);
+  return zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+function richHtml(){
+  const rows=tallyRows();
+  const lines=state.lines.map(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(l.t)}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`).join('');
+  const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n}`).join(' &nbsp;·&nbsp; ');
+  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}</div>`;
+}
+function richText(){ return exportTxt(); }
+$('#copyRich').addEventListener('click', async ()=>{
+  const html=richHtml(), text=richText();
+  try{
+    if(navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([html],{type:'text/html'}), 'text/plain': new Blob([text],{type:'text/plain'})})]);
+      toast('Copied in color - paste into Word, Docs or Slides'); return;
+    }
+    throw new Error('no clipboard api');
+  }catch(e){
+    // fallback: select a hidden rich block and copy it
+    const holder=document.createElement('div'); holder.contentEditable='true'; holder.style.cssText='position:fixed;left:-9999px;top:0;opacity:0'; holder.innerHTML=html; document.body.appendChild(holder);
+    const r=document.createRange(); r.selectNodeContents(holder); const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(err){}
+    sel.removeAllRanges(); holder.remove();
+    toast(ok ? 'Copied in color - paste into Word, Docs or Slides' : 'Copying is blocked in this browser. Select the transcript with the mouse and copy it instead.', 4500);
+  }
+});
+$('#dlDocx').addEventListener('click', async ()=>{ try{ const b=await exportDocx(); await saveFile(stem()+'-coded.docx', b); }catch(err){ toast('Could not build the Word file: '+(err&&err.message||err), 4000); } });
+$('#dlHtml').addEventListener('click', ()=>saveFile(stem()+'-coded.html', exportHtml()));
+$('#dlTxt').addEventListener('click', ()=>saveFile(stem()+'-coded.txt', exportTxt()));
+$('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:'Classroom Moments Coder', version:1, ...state}, null, 2)));
+$('#dlMedia').addEventListener('click', ()=>{ if(!mediaBlob) return; saveFile(stem()+'-recording.'+ext(mediaBlob.type), mediaBlob); });
+
+/* ---------------- persistence (this browser only) ---------------- */
+let saveTimer=null;
+function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveState, 400); }
+function idb(){ return new Promise((res,rej)=>{ try{ const r=indexedDB.open('moments-coder',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }); }
+async function kvSet(k,val){ try{ const db=await idb(); await new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(val,k); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} }
+async function kvGet(k){ try{ const db=await idb(); return await new Promise((res,rej)=>{ const tx=db.transaction('kv','readonly'); const q=tx.objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }catch(e){ return undefined; } }
+function saveState(){ kvSet('state', JSON.parse(JSON.stringify(state))); }
+function saveMedia(){ kvSet('media', mediaBlob ? {blob:mediaBlob, type:mediaType||mediaBlob.type} : null); }
+async function restore(){
+  const s=await kvGet('state'); const m=await kvGet('media');
+  if(s && Array.isArray(s.lines) && (s.lines.length || m)){ state=s; state.lines.forEach(normalize); }
+  else state=sample();
+  if(m && m.blob){ mediaBlob=m.blob; mediaType=m.type||m.blob.type; loadPlayback(); }
+  renderTranscript();
+}
+
+/* ---------------- boot ---------------- */
+state=sample(); renderKey(); renderTranscript(); restore();
+window.addEventListener('beforeunload', ()=>{ if(recording){ try{ rec.stop(); }catch(e){} } });
+})();
+</script>
+
+</body>
+</html>
