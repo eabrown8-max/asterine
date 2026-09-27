@@ -232,6 +232,7 @@ h2.peach::before{background:var(--peach)}
 .gate .err{color:var(--rec);font-size:13px;min-height:1.2em}
 .gate details{margin-top:10px;font-size:13px;color:var(--soft)}
 .gate summary{cursor:pointer;color:var(--accent);font-weight:600}
+.gate .lock{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .gate .fine{font:11.5px/1.5 var(--mono);color:var(--mute);margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
 .veil{position:fixed;inset:0;background:rgba(23,20,15,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
 .ask{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:18px 20px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25)}
@@ -246,15 +247,14 @@ h2.peach::before{background:var(--peach)}
   <form class="card" id="gateForm" autocomplete="off">
     <p class="eyebrow" id="gateBrand"></p>
     <h1 id="gateTitle"></h1>
-    <p class="lede"><i>See the art in your teaching.</i> An invite-only tool for instructional analysis rooted in Cognitive Apprenticeship. Enter the access code you were given.</p>
+    <p class="lede"><i>See the art in your teaching.</i> A secure, invite-only platform for instructional analysis.</p>
     <label class="code" for="gateCode">Access code</label>
     <input type="password" id="gateCode" inputmode="text" autocapitalize="off" spellcheck="false" required>
-    <div class="terms">By entering your access code you agree that:
+    <div class="terms"><span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Local-First Privacy Guarantee</span>
       <ul>
-        <li><b>Audio and video never leave your local machine.</b> Recording, transcription and analysis all run in this browser, on your own device.</li>
-        <li><b>No external servers or cloud APIs process or store classroom footage.</b> The one optional exception, the live draft while recording, is off unless you switch it on, and it is labelled where you do.</li>
-        <li><b>You keep sole ownership of, and responsibility for, the local media files</b>, in line with your school district's media-consent and technology-use policies.</li>
-        <li>You will keep the software's workflows, color-coding interface and designs confidential, and will not share this link, capture screenshots, or pass the software to anyone not invited.</li>
+        <li><b>100% on-device processing.</b> This application runs entirely within your web browser. Your classroom videos, audio recordings and generated transcripts are processed locally on your computer's hardware.</li>
+        <li><b>Zero cloud data exposure.</b> No media files or text are uploaded, streamed or transmitted to external servers or cloud APIs, and the developers cannot see, access or store your student data. The single optional exception is the live draft while recording, which is off unless you switch it on and uses your browser's own speech recognition.</li>
+        <li><b>School compliance.</b> Because data never leaves your device, this architecture minimizes FERPA storage risk. Teachers keep sole responsibility for making sure local recording follows their district's media guidelines.</li>
       </ul>
       <details><summary>Privacy &amp; Local Data Guarantee</summary>
         <p><b>1. Zero cloud data storage.</b> This application runs entirely in your browser. All classroom video, audio recordings, transcripts and files stay on your device. There is no server behind it: <span class="owner"></span> ("the Owner") does not collect, stream, store or have any access to your recordings or student data.</p>
@@ -267,8 +267,8 @@ h2.peach::before{background:var(--peach)}
         <p><b>3. Termination.</b> The Owner may end your access at any time, for any reason, without notice. Your confidentiality and ownership obligations survive the end of your access.</p>
       </details>
     </div>
-    <label class="agree"><input type="checkbox" id="gateAgree" required> <span>I agree to the Privacy &amp; Local Data Guarantee and the Private Beta Confidentiality Terms.</span></label>
-    <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter</button><span class="err" id="gateErr"></span></div>
+    <label class="agree"><input type="checkbox" id="gateAgree" required> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms.</span></label>
+    <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter application</button><span class="err" id="gateErr"></span></div>
     <p class="fine" id="gateLegal"></p>
   </form>
 </div>
@@ -467,7 +467,7 @@ const sample = () => ({
 /* ---------------- beta gate ---------------- */
 (function gate(){
   const g=$('#gate'); let ok=false; try{ ok = localStorage.getItem('cm-beta-ok')==='1'; }catch(e){}
-  $('#gateBrand').textContent=BRAND+' \u00b7 '+STAGE; $('#gateTitle').innerHTML='Welcome to '+esc(APP)+'<sup>\u2122</sup>';
+  $('#gateBrand').textContent=BRAND+' \u00b7 '+STAGE; $('#gateTitle').innerHTML='Welcome to the '+esc(APP)+'<sup>\u2122</sup> '+esc(STAGE);
   document.querySelectorAll('#gate .owner').forEach(el=>el.textContent=OWNER); $('#gateLegal').textContent=COPYRIGHT;
   if(ok){ $('#app').hidden=false; return; }
   g.hidden=false; setTimeout(()=>$('#gateCode').focus(), 50);
