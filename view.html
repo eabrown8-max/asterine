@@ -62,12 +62,13 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const STRATS = [
   {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
-  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
   {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
   {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208'},
-  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
   {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A'},
+  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
+  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
 ];
+const DEFS={modeling:'Teacher artfully demonstrates artistic materials and processes.', scaffolding:'Teacher provides supports in student learning.', articulating:'Students communicate their understanding.', exploring:'Students use artistic materials in new ways.', coaching:'Teacher provides customized feedback during learning.', reflecting:'Students examine their process and product.'};
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
 const APP='Asterine', BRAND='Art of Teaching Studio', OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
 const COPYRIGHT=`© 2026 ${OWNER}. All rights reserved. ${APP}™ and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
@@ -132,7 +133,7 @@ function render(){
   const counts=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const sg of l.segs) if(sg.code&&sg.text.trim()) counts[sg.code]++;
   const box=document.createElement('div');
   box.innerHTML=`<div class="sheet"><h2>Classroom Moments</h2>${lines||'<div class="empty">No lines.</div>'}</div>
-    <div class="sheet"><h2>Sightline</h2><div class="sightline" id="sightline"></div><div class="key">${STRATS.map(st=>`<span class="chip" style="background:${st.chip}">${st.name} ${counts[st.key]||'· not yet'}</span>`).join('')}</div></div>`;
+    <div class="sheet"><h2>Sightline</h2><div class="sightline" id="sightline"></div><div class="key">${STRATS.map(st=>`<span class="chip" style="background:${st.chip}" title="${esc(DEFS[st.key])}">${st.name} ${counts[st.key]||'· not yet'}</span>`).join('')}</div><p class="note">${STRATS.map(st=>`<b style="color:var(--s-${st.key})">${st.name}</b> ${esc(DEFS[st.key])}`).join(' · ')}</p></div>`;
   $('#body').replaceChildren(box);
   const sl=$('#sightline'); const cw=Math.max(340, Math.round(sl.clientWidth||0) || 900); sl.innerHTML=sightSVG({width:cw});
 }
