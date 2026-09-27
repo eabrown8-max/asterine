@@ -412,13 +412,15 @@ h2.peach::before{background:var(--peach)}
       <section class="block">
         <h2 class="peach">Download</h2>
         <div class="exports">
-          <button type="button" class="btn small primary" id="copyRich">Copy in color (paste into Word or Docs)</button>
+          <button type="button" class="btn small" id="shareLink">Share as link</button>
+          <button type="button" class="btn small" id="copyRich">Copy in color</button>
           <button type="button" class="btn small" id="dlDocx">Word, in color (.docx)</button>
           <button type="button" class="btn small" id="dlHtml">Web page, in color (.html)</button>
           <button type="button" class="btn small" id="dlTxt">Plain text, no color (.txt)</button>
           <button type="button" class="btn small" id="dlJson">Project to reopen (.json)</button>
           <button type="button" class="btn small" id="dlMedia" disabled>Recording (.webm)</button>
         </div>
+        <p class="note">Share as link puts the words and colors in a link (not the recording). Copy in color pastes into Word, Docs or Slides.</p>
       </section>
     </aside>
   </div>
@@ -1114,6 +1116,44 @@ $('#copyRich').addEventListener('click', async ()=>{
   }
 });
 $('#dlDocx').addEventListener('click', async ()=>{ try{ const b=await exportDocx(); await saveFile(stem()+'-coded.docx', b); }catch(err){ toast('Could not build the Word file: '+(err&&err.message||err), 4000); } });
+/* ---- share as link: the coded transcript travels inside the address; nothing is stored anywhere ---- */
+const SHARE_BASE='https://artofteachingstudio.com/asterine/';
+function b64u(bytes){ let s=''; for(const b of bytes) s+=String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function unb64u(str){ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const bin=atob(str); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
+async function deflate(bytes){ if(!window.CompressionStream) return null; const cs=new CompressionStream('deflate-raw'); const w=cs.writable.getWriter(); w.write(bytes); w.close(); return new Uint8Array(await new Response(cs.readable).arrayBuffer()); }
+async function inflate(bytes){ const ds=new DecompressionStream('deflate-raw'); const w=ds.writable.getWriter(); w.write(bytes); w.close(); return new Uint8Array(await new Response(ds.readable).arrayBuffer()); }
+async function makeShareLink(){
+  const payload={v:1, title:state.title, clips:state.clips.map(c=>({dur:+((c.dur||0).toFixed(1)), name:c.name})), lines:state.lines.map(l=>({t:l.t==null?null:+(+l.t).toFixed(1), c:l.c||0, w:l.who, s:l.segs.map(sg=>sg.code?[sg.text,sg.code]:[sg.text])}))};
+  const raw=new TextEncoder().encode(JSON.stringify(payload));
+  const z=await deflate(raw);
+  const tag = z ? 'z' : 'j'; const body=b64u(z||raw);
+  return SHARE_BASE+'#'+tag+'='+body;
+}
+async function openSharedFromHash(){
+  const h=location.hash||''; const m=h.match(/^#([zj])=([A-Za-z0-9\-_]+)$/); if(!m) return false;
+  try{
+    let bytes=unb64u(m[2]); if(m[1]==='z') bytes=await inflate(bytes);
+    const p=JSON.parse(new TextDecoder().decode(bytes)); if(!p||!Array.isArray(p.lines)) throw 0;
+    if(state.lines.length && !state.sample && !await ask('Open the shared transcript? Your current session is replaced (download it first if you want to keep it).', 'Open it')) return true;
+    stopPlaybackMedia(); clips=[]; cur=-1;
+    state={ title:(p.title||'Shared transcript'), sample:false, createdAt:Date.now(), mediaName:null,
+      clips:(p.clips||[]).map(c=>({dur:+c.dur||0, name:String(c.name||'')})),
+      lines:p.lines.map(l=>({t:(l.t==null?null:+l.t), c:+l.c||0, who:l.w||'', segs:(l.s||[]).map(x=>({text:String(x[0]||''), code:BY[x[1]]?x[1]:null}))})) };
+    state.lines.forEach(normalize); $('#playBlock').hidden=true; $('#dlMedia').disabled=true;
+    changed(); saveMedia(); history.replaceState(null,'',location.pathname+location.search);
+    toast('Shared transcript opened. The recording stays with whoever shared it.', 3200); return true;
+  }catch(e){ console.error(e); toast('That shared link could not be opened.', 3000); return false; }
+}
+$('#shareLink').addEventListener('click', async ()=>{
+  if(!state.lines.length){ toast('Nothing to share yet', 1500); return; }
+  try{
+    const url=await makeShareLink(); const kb=(url.length/1024).toFixed(1);
+    let copied=false; try{ await navigator.clipboard.writeText(url); copied=true; }catch(e){}
+    if(!copied){ const ta=document.createElement('textarea'); ta.value=url; ta.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(ta); ta.select(); try{ copied=document.execCommand('copy'); }catch(e){} ta.remove(); }
+    toast((copied?'Link copied':'Could not copy - the link is in the address bar')+' ('+kb+' KB; the words and colors travel in the link, the recording does not'+(url.length>8000?'; a link this long may get cut in some email apps - the .json file is the safer way to send a lesson this size':'')+')', 6500);
+    if(!copied) location.hash=url.slice(url.indexOf('#'));
+  }catch(e){ toast('Could not build the link: '+(e&&e.message||e), 3500); }
+});
 $('#dlHtml').addEventListener('click', ()=>saveFile(stem()+'-coded.html', exportHtml()));
 $('#dlTxt').addEventListener('click', ()=>saveFile(stem()+'-coded.txt', exportTxt()));
 $('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:APP, brand:BRAND, version:2, agreement:agreement(), ...state}, null, 2)));
@@ -1136,10 +1176,12 @@ async function restore(){
   while(state.clips.length<clips.length) state.clips.push({dur:0, name:'Recording '+(state.clips.length+1)});
   if(clips.length) loadClip(0);
   renderTranscript();
+  await openSharedFromHash();
 }
+window.addEventListener('hashchange', ()=>{ openSharedFromHash(); });
 
 /* ---------------- boot ---------------- */
-if(location.hash==='#debug') window.__asterine={exportDocx, sightSVG, sightPNG};
+if(location.hash==='#debug') window.__asterine={exportDocx, sightSVG, sightPNG, makeShareLink};
 state=sample(); renderKey(); renderTranscript(); restore();
 let rsz=null; window.addEventListener('resize', ()=>{ clearTimeout(rsz); rsz=setTimeout(renderTally, 150); });
 window.addEventListener('beforeunload', ()=>{ if(recording){ try{ rec.stop(); }catch(e){} } });
