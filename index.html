@@ -154,6 +154,10 @@ h2.peach::before{background:var(--peach)}
 .filerow{display:flex;flex-wrap:wrap;gap:8px}
 .filerow label.btn{cursor:pointer}
 .filerow input{display:none}
+.controls label.btn{cursor:pointer}
+.controls label.btn input{display:none}
+.controls.tally{margin-top:6px}
+h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:22px 0 6px}
 
 /* tally */
 .sightsheet{margin-top:20px;min-height:0}
@@ -433,16 +437,25 @@ h2.peach::before{background:var(--peach)}
         <p class="note" style="margin:0">See how a second reading compares with your coding.</p>
         <div class="controls">
           <button type="button" class="btn primary small" id="btnCounterpoint">Run Counterpoint</button>
-          <button type="button" class="btn small ghost" id="btnCalib">Practice calibration</button>
-          <button type="button" class="btn small" id="btnScore" hidden>Score my coding</button>
-          <button type="button" class="btn small ghost" id="btnLeaveCalib" hidden>Leave calibration</button>
-          <button type="button" class="btn small ghost" id="btnResetTally" hidden>Reset tally</button>
-          <button type="button" class="btn small ghost" id="btnSaveTally" hidden>Save tally to file</button>
-          <label class="btn small ghost" for="fileTally">Load tally<input type="file" id="fileTally" accept=".json,application/json"></label>
         </div>
         <div class="wbar" id="cpBar" hidden><i id="cpFill"></i></div>
         <p class="note" id="cpStatus">Based on the six Teaching Move definitions. Your coding stays yours.</p>
         <div class="cplist" id="cpList"></div>
+        <h3 class="subhead">Calibration</h3>
+        <p class="note" style="margin:0">Code a reference set, then compare your coding with the authors'.</p>
+        <div class="controls">
+          <button type="button" class="btn small" id="btnCalib">Practice calibration</button>
+          <button type="button" class="btn primary small" id="btnScore" hidden>Score my coding</button>
+          <button type="button" class="btn small ghost" id="btnLeaveCalib" hidden>Leave calibration</button>
+        </div>
+        <div class="wbar" id="calBar" hidden><i id="calFill"></i></div>
+        <p class="note" id="calStatus">Toward the credential: Cohen's kappa 0.80 across forty moments.</p>
+        <div class="cplist" id="calList"></div>
+        <div class="controls tally">
+          <button type="button" class="btn small ghost" id="btnSaveTally" hidden>Save tally</button>
+          <label class="btn small ghost" for="fileTally">Load tally<input type="file" id="fileTally" accept=".json,application/json"></label>
+          <button type="button" class="btn small ghost" id="btnResetTally" hidden>Reset tally</button>
+        </div>
       </section>
       <section class="block">
         <h2 class="peach">Download</h2>
@@ -1151,6 +1164,7 @@ $('#btnWhisper').addEventListener('click', ()=>runWhisper(true));
 $('#btnSpeakers').addEventListener('click', ()=>runWhisper(false));
 /* ---------------- Counterpoint: a second reading against the theory, and practice calibration ---------------- */
 let cpPipe=null, cpBusy=false, calib=null;   // calib = {backup, ref:[code per line]} while a calibration set is loaded
+function calStatus(msg){ $('#calStatus').textContent=msg; }
 function cpStatus(msg, frac){ $('#cpStatus').textContent=msg; const bar=$('#cpBar'); if(frac==null){ bar.hidden=true; } else { bar.hidden=false; $('#cpFill').style.width=Math.round(frac*100)+'%'; } }
 function lineCode(l){ const cnt={}; for(const s of l.segs){ if(s.code) cnt[s.code]=(cnt[s.code]||0)+s.text.length; } return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||null; }
 async function getCp(){
@@ -1201,9 +1215,9 @@ function loadTally(){ try{ const t=JSON.parse(localStorage.getItem('cm-calibrati
 let tally=loadTally();
 function saveTally(){ try{ localStorage.setItem('cm-calibration', JSON.stringify(tally)); }catch(e){} }
 function tallyLine(){ if(!tally.pairs.length) return ''; const r=kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])); const reached = r.n>=BAR_N && r.k>=BAR_K;
-  return ` Running tally on this computer: ${r.n} of ${BAR_N} moments, agreement ${Math.round(r.po*100)}%, kappa ${r.k.toFixed(2)}.` + (reached ? ' The credential bar is reached.' : (r.n<BAR_N ? ` ${BAR_N-r.n} more moments to go.` : ' Forty moments in; kappa is still under the bar.')); }
-function refreshTallyUI(){ $('#btnResetTally').hidden=!tally.pairs.length; $('#btnSaveTally').hidden=!tally.pairs.length; const r=tally.pairs.length ? kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])) : null; const bar=$('#cpBar'); if(r && !cpBusy){ bar.hidden=false; $('#cpFill').style.width=Math.round(Math.min(1, r.n/BAR_N)*100)+'%'; } }
-function resetTally(){ tally={pairs:[]}; saveTally(); refreshTallyUI(); $('#cpBar').hidden=true; cpStatus('Tally cleared.'); }
+  return ` Tally on this computer: ${r.n} of ${BAR_N} moments, agreement ${Math.round(r.po*100)}%, kappa ${r.k.toFixed(2)}.` + (reached ? ' The credential bar is reached.' : (r.n<BAR_N ? ` ${BAR_N-r.n} to go.` : ' Forty in; kappa is under 0.80.')); }
+function refreshTallyUI(){ $('#btnResetTally').hidden=!tally.pairs.length; $('#btnSaveTally').hidden=!tally.pairs.length; const r=tally.pairs.length ? kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])) : null; const bar=$('#calBar'); if(r){ bar.hidden=false; $('#calFill').style.width=Math.round(Math.min(1, r.n/BAR_N)*100)+'%'; } else bar.hidden=true; }
+function resetTally(){ tally={pairs:[]}; saveTally(); refreshTallyUI(); calStatus('Tally cleared.'); }
 function kappa(a, b){
   // Cohen's kappa over two equal-length code sequences; 'none' is a category
   const n=a.length; if(!n) return {po:0, pe:0, k:0, agree:0, n:0};
@@ -1219,26 +1233,26 @@ async function startCalibration(refState, label){
   calib={ backup: JSON.parse(JSON.stringify(state)), ref: refState.lines.map(l=>lineCode(l)||'none'), label };
   const blank=JSON.parse(JSON.stringify(refState)); blank.lines.forEach(l=>{ delete l.cp; l.segs=[{text:lineText(l), code:null}]; }); blank.title=(refState.title||'Calibration')+' - calibration'; blank.sample=false;
   state=blank; cur=-1; changed();
-  $('#btnScore').hidden=false; $('#btnLeaveCalib').hidden=false; $('#btnCalib').hidden=true; $('#btnCounterpoint').hidden=true; $('#cpList').innerHTML='';
-  cpStatus('Code every line with the move you see, then Score my coding. The reference is hidden until you score. '+(refState.sample ? 'This is the practice set; the credential set of forty moments comes from the authors.' : ''));
+  $('#btnScore').hidden=false; $('#btnLeaveCalib').hidden=false; $('#btnCalib').hidden=true; $('#btnCounterpoint').hidden=true; $('#cpList').innerHTML=''; $('#calList').innerHTML='';
+  calStatus('Code each line, then Score my coding. The reference is hidden until you score.'+(refState.sample ? ' This is the practice set; the credential set comes from the authors.' : ''));
 }
 function scoreCalibration(){
   if(!calib) return;
   const mine=state.lines.map(l=>lineCode(l)||'none'); const ref=calib.ref;
   const n=Math.min(mine.length, ref.length); const r=kappa(mine.slice(0,n), ref.slice(0,n));
-  const box=$('#cpList'); box.innerHTML='';
+  const box=$('#calList'); box.innerHTML='';
   for(let i=0;i<n;i++){ if(mine[i]===ref[i]) continue; const l=state.lines[i]; const you=BY[mine[i]], th=BY[ref[i]];
     const d=document.createElement('div'); d.className='cp-item';
     d.innerHTML=`<span class="cp-t">${fmt(absT(l))}</span>you: <span class="cp-v" style="color:${you?you.text:'inherit'}">${you?you.name:'uncoded'}</span> &middot; reference: <span class="cp-v" style="color:${th?th.text:'inherit'}">${th?th.name:'uncoded'}</span>`+(th?`<div class="cp-why">${esc(th.def)}</div>`:'');
     box.appendChild(d); }
   for(let i=0;i<n;i++) tally.pairs.push([mine[i], ref[i]]); saveTally(); refreshTallyUI();
-  cpStatus(`This pass: agreement ${r.agree} of ${r.n} (${Math.round(r.po*100)}%), Cohen's kappa ${r.k.toFixed(2)}.`+tallyLine()+(r.agree<r.n?' The disagreements are listed below.':''));
+  calStatus(`This pass: agreement ${r.agree} of ${r.n} (${Math.round(r.po*100)}%), kappa ${r.k.toFixed(2)}.`+tallyLine()+(r.agree<r.n?' Disagreements are listed below.':''));
 }
 function leaveCalibration(){
   if(!calib) return;
-  state=calib.backup; calib=null; cur=-1; changed(); $('#cpList').innerHTML='';
+  state=calib.backup; calib=null; cur=-1; changed(); $('#calList').innerHTML='';
   $('#btnScore').hidden=true; $('#btnLeaveCalib').hidden=true; $('#btnCalib').hidden=false; $('#btnCounterpoint').hidden=false;
-  cpStatus('Back to your transcript.');
+  calStatus('Back to your transcript.');
 }
 $('#btnCounterpoint').addEventListener('click', runCounterpoint);
 $('#btnCalib').addEventListener('click', ()=>startCalibration(sample(), 'practice set'));
@@ -1250,10 +1264,10 @@ $('#fileTally').addEventListener('change', async e=>{ const f=e.target.files[0];
   try{ const d=JSON.parse(await f.text()); if(d.asterine!=='calibration-tally'||!Array.isArray(d.pairs)) throw new Error('not a tally file');
     const add=d.pairs.filter(x=>Array.isArray(x)&&x.length===2);
     if(tally.pairs.length && !await ask('Add the '+add.length+' moments in this file to the '+tally.pairs.length+' already on this computer? Use Reset tally first to start from the file alone.', 'Add')) return;
-    tally={pairs: tally.pairs.concat(add)}; saveTally(); refreshTallyUI(); cpStatus('Tally loaded.'+tallyLine()); }
+    tally={pairs: tally.pairs.concat(add)}; saveTally(); refreshTallyUI(); calStatus('Tally loaded.'+tallyLine()); }
   catch(err){ toast('That is not an Asterine tally file.', 3000); } });
 $('#cpBlock').hidden = framed;
-if(tally.pairs.length){ $('#cpStatus').textContent += tallyLine(); } refreshTallyUI();
+if(tally.pairs.length){ $('#calStatus').textContent += tallyLine(); } refreshTallyUI();
 $('#btnEnroll').addEventListener('click', enrollVoice);
 $('#btnForgetVoice').addEventListener('click', forgetVoice);
 teacherVoice=loadVoice(); refreshVoiceUI();
