@@ -430,12 +430,13 @@ h2.peach::before{background:var(--peach)}
       </section>
       <section class="block" id="cpBlock" hidden>
         <h2 class="peach">Counterpoint</h2>
-        <p class="note" style="margin:0">Would the theory read this moment differently?</p>
+        <p class="note" style="margin:0">Would the theory read this moment differently? Open to everyone during the beta; after launch, Counterpoint and the credential are part of the Teacher license.</p>
         <div class="controls">
           <button type="button" class="btn primary small" id="btnCounterpoint">Read against the theory</button>
           <button type="button" class="btn small ghost" id="btnCalib">Practice calibration</button>
           <button type="button" class="btn small" id="btnScore" hidden>Score my coding</button>
           <button type="button" class="btn small ghost" id="btnLeaveCalib" hidden>Leave calibration</button>
+          <button type="button" class="btn small ghost" id="btnResetTally" hidden>Reset tally</button>
         </div>
         <div class="wbar" id="cpBar" hidden><i id="cpFill"></i></div>
         <p class="note" id="cpStatus">A second reading of every coded line against the six definitions, on this computer. Where the theory disagrees, you decide. First run downloads the Counterpoint model once, about 25 MB.</p>
@@ -1171,6 +1172,14 @@ function renderCpList(){
     box.appendChild(d);
   });
 }
+const BAR_K=0.80, BAR_N=40;   // the credential: Cohen's kappa 0.80 on forty moments
+function loadTally(){ try{ const t=JSON.parse(localStorage.getItem('cm-calibration')||'null'); if(t&&Array.isArray(t.pairs)) return t; }catch(e){} return {pairs:[]}; }
+let tally=loadTally();
+function saveTally(){ try{ localStorage.setItem('cm-calibration', JSON.stringify(tally)); }catch(e){} }
+function tallyLine(){ if(!tally.pairs.length) return ''; const r=kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])); const reached = r.n>=BAR_N && r.k>=BAR_K;
+  return ` Running tally on this computer: ${r.n} of ${BAR_N} moments, agreement ${Math.round(r.po*100)}%, kappa ${r.k.toFixed(2)}.` + (reached ? ' The credential bar is reached.' : (r.n<BAR_N ? ` ${BAR_N-r.n} more moments to go.` : ' Forty moments in; kappa is still under the bar.')); }
+function refreshTallyUI(){ $('#btnResetTally').hidden=!tally.pairs.length; const r=tally.pairs.length ? kappa(tally.pairs.map(x=>x[0]), tally.pairs.map(x=>x[1])) : null; const bar=$('#cpBar'); if(r && !cpBusy){ bar.hidden=false; $('#cpFill').style.width=Math.round(Math.min(1, r.n/BAR_N)*100)+'%'; } }
+function resetTally(){ tally={pairs:[]}; saveTally(); refreshTallyUI(); $('#cpBar').hidden=true; cpStatus('Tally cleared.'); }
 function kappa(a, b){
   // Cohen's kappa over two equal-length code sequences; 'none' is a category
   const n=a.length; if(!n) return {po:0, pe:0, k:0, agree:0, n:0};
@@ -1198,8 +1207,8 @@ function scoreCalibration(){
     const d=document.createElement('div'); d.className='cp-item';
     d.innerHTML=`<span class="cp-t">${fmt(absT(l))}</span>you: <span class="cp-v" style="color:${you?you.text:'inherit'}">${you?you.name:'uncoded'}</span> &middot; reference: <span class="cp-v" style="color:${th?th.text:'inherit'}">${th?th.name:'uncoded'}</span>`+(th?`<div class="cp-why">${esc(th.def)}</div>`:'');
     box.appendChild(d); }
-  const bar=0.80, pass=r.k>=bar;
-  cpStatus(`Agreement ${r.agree} of ${r.n} (${Math.round(r.po*100)}%). Cohen's kappa ${r.k.toFixed(2)}. The credential bar is kappa ${bar.toFixed(2)} on forty moments; this set has ${r.n}. `+(pass?'Above the bar on this set.':'Below the bar on this set; the disagreements are listed below.'));
+  for(let i=0;i<n;i++) tally.pairs.push([mine[i], ref[i]]); saveTally(); refreshTallyUI();
+  cpStatus(`This pass: agreement ${r.agree} of ${r.n} (${Math.round(r.po*100)}%), Cohen's kappa ${r.k.toFixed(2)}.`+tallyLine()+(r.agree<r.n?' The disagreements are listed below.':''));
 }
 function leaveCalibration(){
   if(!calib) return;
@@ -1211,7 +1220,9 @@ $('#btnCounterpoint').addEventListener('click', runCounterpoint);
 $('#btnCalib').addEventListener('click', ()=>startCalibration(sample(), 'practice set'));
 $('#btnScore').addEventListener('click', scoreCalibration);
 $('#btnLeaveCalib').addEventListener('click', leaveCalibration);
+$('#btnResetTally').addEventListener('click', resetTally);
 $('#cpBlock').hidden = framed;
+if(tally.pairs.length){ $('#cpStatus').textContent += tallyLine(); } refreshTallyUI();
 $('#btnEnroll').addEventListener('click', enrollVoice);
 $('#btnForgetVoice').addEventListener('click', forgetVoice);
 teacherVoice=loadVoice(); refreshVoiceUI();
