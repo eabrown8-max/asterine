@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- (c) 2026 Dr. Beth Brown. All rights reserved. Classroom Moments(TM) and its associated color-coded instructional analysis workflows are trademarks of Dr. Beth Brown. Private beta. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 </head>
 <body>
-<title>Classroom Moments Coder</title>
+<title>Classroom Moments</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>
@@ -58,6 +59,8 @@ button:focus-visible,[tabindex]:focus-visible,.txt:focus-visible{outline:2px sol
 .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--peach);margin:0 0 8px}
 h1{font:500 30px/1.05 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
 h1 em{font-style:italic;font-weight:400}
+h1 sup{font-size:.4em;font-weight:500;vertical-align:top;margin-left:2px;color:var(--soft)}
+.legal{margin-top:34px;padding-top:12px;border-top:1px solid var(--line);font:11.5px/1.55 var(--mono);color:var(--mute)}
 .head .meta{font:12px/1.4 var(--mono);color:var(--soft);font-variant-numeric:tabular-nums}
 .head .meta b{color:var(--ink);font-weight:600}
 .banner{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;margin-top:14px;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--peach);border-radius:8px;background:var(--surface);font-size:13.5px;color:var(--soft)}
@@ -106,6 +109,8 @@ h2.peach::before{background:var(--peach)}
 .player{display:flex;align-items:center;gap:8px;margin-top:10px}
 .player input[type=range]{flex:1;accent-color:var(--accent)}
 .player .t{font:12px var(--mono);font-variant-numeric:tabular-nums;color:var(--soft);min-width:8ch;text-align:right}
+.wbar{height:4px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden}
+.wbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .filerow{display:flex;flex-wrap:wrap;gap:8px}
 .filerow label.btn{cursor:pointer}
 .filerow input{display:none}
@@ -185,6 +190,23 @@ h2.peach::before{background:var(--peach)}
 }
 .exports{display:flex;flex-direction:column;gap:6px}
 .exports .btn{justify-content:flex-start}
+.gate{position:fixed;inset:0;z-index:40;background:var(--paper);color:var(--ink);overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:calc(28px + env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}
+.gate .card{max-width:520px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:26px 26px 22px;margin-top:4vh}
+.gate h1{font-size:28px;margin:6px 0 10px}
+.gate p{margin:0 0 12px;line-height:1.5}
+.gate .lede{color:var(--soft);font-size:14.5px}
+.gate label.code{display:block;font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:18px 0 6px}
+.gate input[type=password]{width:100%;font-size:18px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);letter-spacing:.08em}
+.gate .terms{margin-top:14px;font-size:13px;color:var(--soft);line-height:1.5}
+.gate .terms ul{margin:6px 0 0;padding-left:18px}
+.gate .terms li{margin-bottom:4px}
+.gate .agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px}
+.gate .agree input{margin-top:3px;flex:none}
+.gate .row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:16px}
+.gate .err{color:var(--rec);font-size:13px;min-height:1.2em}
+.gate details{margin-top:10px;font-size:13px;color:var(--soft)}
+.gate summary{cursor:pointer;color:var(--accent);font-weight:600}
+.gate .fine{font:11.5px/1.5 var(--mono);color:var(--mute);margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
 .veil{position:fixed;inset:0;background:rgba(23,20,15,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:30}
 .ask{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:18px 20px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25)}
 .ask p{margin:0 0 14px;line-height:1.5}
@@ -194,11 +216,35 @@ h2.peach::before{background:var(--peach)}
 .foot{margin-top:28px;font-size:12px;color:var(--mute);line-height:1.5}
 </style>
 
+<div class="gate" id="gate" hidden>
+  <form class="card" id="gateForm" autocomplete="off">
+    <p class="eyebrow" id="gateBrand"></p>
+    <h1 id="gateTitle"></h1>
+    <p class="lede">An invite-only tool for instructional analysis rooted in Cognitive Apprenticeship. Enter the access code you were given.</p>
+    <label class="code" for="gateCode">Access code</label>
+    <input type="password" id="gateCode" inputmode="text" autocapitalize="off" spellcheck="false" required>
+    <div class="terms">By entering your access code you agree that:
+      <ul>
+        <li>You will keep the software's workflows, color-coding interface and designs confidential.</li>
+        <li>You will not share this link, capture screenshots, or distribute the software to anyone not invited.</li>
+        <li>Any classroom recordings you make or load are authorized by your local school or district policies, and they stay on your own device.</li>
+      </ul>
+      <details><summary>Private Beta Confidentiality Terms</summary>
+        <p><b>1. Ownership.</b> <span class="owner"></span> ("the Owner") owns all rights, title and interest in this software, including its source code, user interface, features, designs and the color-coded transcription analysis methodology. You receive only a limited right to test the software.</p>
+        <p><b>2. Confidentiality.</b> This software is in a private beta and contains proprietary workflows. You will not copy, reverse-engineer or replicate the software or its workflows; share, publish or leak screenshots, recordings or descriptions of the interface or process to any third party; or use the color-coding methodology to build a competing product or educational tool.</p>
+        <p><b>3. Termination.</b> The Owner may end your access at any time, for any reason, without notice. Your confidentiality and ownership obligations survive the end of your access.</p>
+      </details>
+    </div>
+    <label class="agree"><input type="checkbox" id="gateAgree" required> <span>I agree to the Private Beta Confidentiality Terms.</span></label>
+    <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter</button><span class="err" id="gateErr"></span></div>
+    <p class="fine" id="gateLegal"></p>
+  </form>
+</div>
 <div class="wrap">
   <header class="head">
     <div>
-      <p class="eyebrow">Cognitive Apprenticeship</p>
-      <h1>Classroom Moments <em>Coder</em></h1>
+      <p class="eyebrow" id="brandLine">CogApp Studio</p>
+      <h1 id="appName">Classroom Moments</h1>
     </div>
     <div class="meta" id="meta">no recording yet</div>
   </header>
@@ -225,7 +271,6 @@ h2.peach::before{background:var(--peach)}
           <button type="button" class="btn" id="btnStop" disabled>■ Stop</button>
         </div>
         <div class="timer"><span id="clock">0:00</span><small id="clockLabel">ready</small></div>
-        <div class="controls" id="whoRow" hidden><span class="note" style="margin:0;align-self:center">Speaking now</span><div class="segmented" id="whoSeg"><button type="button" data-who="T" class="on">T</button><button type="button" data-who="S">S</button><button type="button" data-who="Ss">Ss</button></div></div>
         <div class="interim" id="interim"></div>
         <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. <a href="https://eabrown8-max.github.io/classroom-moments-coder/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
         <p class="note" id="speechNote"></p>
@@ -240,6 +285,17 @@ h2.peach::before{background:var(--peach)}
         </div>
         <div class="clipnav" id="clipnav" hidden><button type="button" class="btn small" id="clipPrev" title="Previous recording">&lsaquo;</button><span class="lab" id="clipLabel"></span><button type="button" class="btn small" id="clipNext" title="Next recording">&rsaquo;</button></div>
         <label class="note" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="follow" checked> Follow the transcript while playing</label>
+      </section>
+
+      <section class="block" id="whisperBlock" hidden>
+        <h2>Transcribe on this computer</h2>
+        <div class="controls">
+          <div class="segmented" id="wModel"><button type="button" data-m="tiny">Quick</button><button type="button" data-m="base" class="on">Better</button><button type="button" data-m="small">Best, slow</button></div>
+          <button type="button" class="btn primary small" id="btnWhisper">Transcribe + speakers</button>
+          <button type="button" class="btn small ghost" id="btnSpeakers">Speakers only</button>
+        </div>
+        <div class="wbar" id="wbar" hidden><i id="wFill"></i></div>
+        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. Whisper writes the words, a second model tells the voices apart: the one that talks most is T, the others S. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB).</p>
       </section>
 
       <section class="block">
@@ -298,7 +354,6 @@ h2.peach::before{background:var(--peach)}
           <li>Pick a strategy, then click lines or drag over words.</li>
           <li>Pick another strategy and click again to change it.</li>
           <li>Keys 1 to 7 pick a strategy, 0 uncodes.</li>
-          <li>T, S or A sets the speaker of a clicked line; while recording, who is speaking now.</li>
         </ul>
       </section>
       <section class="block">
@@ -314,6 +369,7 @@ h2.peach::before{background:var(--peach)}
       </section>
     </aside>
   </div>
+<p class="legal" id="legal"></p>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -323,6 +379,17 @@ h2.peach::before{background:var(--peach)}
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ---- names: change these two and every title, header, download and file name follows ---- */
+const BRAND='CogApp Studio';
+const APP='Classroom Moments';
+const OWNER='Dr. Beth Brown';
+const YEAR='2026';
+const STAGE='Private Beta';
+const COPYRIGHT=`\u00a9 ${YEAR} ${OWNER}. All rights reserved. ${APP}\u2122 and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
+const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
+const TAGLINE='Cognitive Apprenticeship strategies, coded from real classroom moments.';
+document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT;
 const STRATS = [
   {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
   {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
@@ -362,10 +429,27 @@ const sample = () => ({
   ]
 });
 
+/* ---------------- beta gate ---------------- */
+(function gate(){
+  const g=$('#gate'); let ok=false; try{ ok = localStorage.getItem('cm-beta-ok')==='1'; }catch(e){}
+  $('#gateBrand').textContent=BRAND+' \u00b7 '+STAGE; $('#gateTitle').innerHTML='Welcome to '+esc(APP)+'<sup>\u2122</sup>';
+  document.querySelectorAll('#gate .owner').forEach(el=>el.textContent=OWNER); $('#gateLegal').textContent=COPYRIGHT;
+  if(ok) return;
+  g.hidden=false; setTimeout(()=>$('#gateCode').focus(), 50);
+  async function sha(t){ const b=new TextEncoder().encode(t); const h=await crypto.subtle.digest('SHA-256', b); return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  $('#gateForm').addEventListener('submit', async e=>{
+    e.preventDefault(); const code=$('#gateCode').value.trim().toLowerCase(); const err=$('#gateErr'); err.textContent='';
+    if(!$('#gateAgree').checked){ err.textContent='Tick the agreement to continue.'; return; }
+    let h=''; try{ h=await sha(code); }catch(x){ err.textContent='This browser cannot check the code (it needs a secure https page).'; return; }
+    if(h!==GATE_HASH){ err.textContent='That code is not right. Check with the person who invited you.'; $('#gateCode').select(); return; }
+    try{ localStorage.setItem('cm-beta-ok','1'); }catch(x){}
+    g.hidden=true;
+  });
+})();
+
 /* ---------------- helpers ---------------- */
 const fmt = s => { if(s==null) return '–'; s = Math.max(0, Math.floor(s||0)); const m = Math.floor(s/60), r = s%60; return m + ':' + String(r).padStart(2,'0'); };
 const lineText = l => l.segs.map(s => s.text).join('');
-const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function ask(msg, yes){
   msg = msg || 'Are you sure?'; yes = yes || 'Yes';
   return new Promise(res=>{
@@ -567,8 +651,7 @@ function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; state={title:'Transc
 
 /* ---------------- recording ---------------- */
 let liveWho='T';
-function setLiveWho(w){ liveWho=w; document.querySelectorAll('#whoSeg button').forEach(b=>b.classList.toggle('on', b.dataset.who===w)); }
-$('#whoSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) setLiveWho(b.dataset.who); });
+function setLiveWho(w){ liveWho=w; }
 let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null, recClip=0, recType='';
 $('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -606,7 +689,7 @@ async function startRecording(){
   rec.onstop = onRecStopped;
   rec.start(1000);
   recording=true; t0=performance.now(); if(!state.createdAt) state.createdAt=Date.now(); state.mediaName=null; if(!clips.length) state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-  $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true; $('#whoRow').hidden=false; setLiveWho('T');
+  $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true; setLiveWho('T');
   clockTimer=setInterval(()=>{ $('#clock').textContent=fmt(elapsed()); }, 250);
   renderTranscript(); startSpeech();
 }
@@ -616,7 +699,7 @@ function onRecStopped(){
   const blob = new Blob(chunks, {type: recType || 'video/webm'}); chunks=[];
   const dur = Math.max(0.5, elapsed());
   clips[recClip] = {blob, type: blob.type}; state.clips[recClip] = {dur, name:'Recording '+(recClip+1)};
-  $('#stage').classList.remove('recording'); $('#whoRow').hidden=true; $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
+  $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
   loadClip(recClip); saveMedia(); renderTranscript(); scheduleSave(); toast((recClip?'Recording '+(recClip+1)+' added':'Recording saved in this browser')+'. Now code the transcript.', 2600);
 }
 function startSpeech(){
@@ -663,7 +746,7 @@ function loadClip(i, after){
   const isVideo = (clip.type||clip.blob.type||'').startsWith('video');
   $('#stage').classList.toggle('audio-only', !isVideo); $('#audioLabel').textContent='audio recording';
   $('#playBlock').hidden=false; $('#dlMedia').disabled=false; $('#dlMedia').textContent=clipName(i)+' (.' + ext(clip.blob.type) + ')';
-  $('#clipnav').hidden = clips.length<2; $('#clipLabel').textContent = clipName(i)+' of '+clips.length; $('#clipPrev').disabled = i<=0; $('#clipNext').disabled = i>=clips.length-1;
+  $('#whisperBlock').hidden = framed; $('#clipnav').hidden = clips.length<2; $('#clipLabel').textContent = clipName(i)+' of '+clips.length; $('#clipPrev').disabled = i<=0; $('#clipNext').disabled = i>=clips.length-1;
   v.onloadedmetadata=()=>{
     const meta=state.clips[i]||(state.clips[i]={dur:0,name:'Recording '+(i+1)});
     if(isFinite(v.duration) && v.duration>0 && Math.abs((meta.dur||0)-v.duration)>1){ meta.dur=v.duration; renderTranscript(); scheduleSave(); }
@@ -690,6 +773,104 @@ v.addEventListener('timeupdate', ()=>{
 });
 $('#scrub').addEventListener('input', e=>{ const d=isFinite(v.duration)?v.duration:0; if(d) v.currentTime=e.target.value/1000*d; });
 
+/* ---------------- whisper, in the browser ---------------- */
+let wModel='base', wBusy=false, wPipes={}, wLib=null, wDia=null;
+$('#wModel').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||wBusy) return; wModel=b.dataset.m; document.querySelectorAll('#wModel button').forEach(x=>x.classList.toggle('on',x===b)); });
+function wStatus(msg, frac){ $('#wStatus').textContent=msg; const bar=$('#wbar'); if(frac==null){ bar.hidden=true; } else { bar.hidden=false; $('#wFill').style.width=Math.round(frac*100)+'%'; } }
+async function decodeTo16k(blob){
+  const buf=await blob.arrayBuffer();
+  const Ctx=window.OfflineAudioContext||window.webkitOfflineAudioContext; const AC=window.AudioContext||window.webkitAudioContext;
+  const probe=new AC(); const decoded=await probe.decodeAudioData(buf.slice(0)); probe.close();
+  const off=new Ctx(1, Math.ceil(decoded.duration*16000), 16000); const src=off.createBufferSource(); src.buffer=decoded; src.connect(off.destination); src.start();
+  const out=await off.startRendering(); return out.getChannelData(0);
+}
+async function lib(){
+  if(wLib) return wLib;
+  wLib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+  wLib.env.allowLocalModels=false; wLib.env.useBrowserCache=true; return wLib;
+}
+function progressTo(label){ const files={}; return d=>{
+  if(d.status==='progress' && d.file){ files[d.file]=[d.loaded||0, d.total||0]; let l=0,t=0; for(const k in files){ l+=files[k][0]; t+=files[k][1]; } wStatus('Downloading '+label+', once: '+Math.round(t?l/t*100:0)+'%', t?l/t:0); }
+  else if(d.status==='initiate'){ wStatus('Preparing '+label+'...', 0); }
+}; }
+function withTimeout(p, ms){ return new Promise((res,rej)=>{ const h=setTimeout(()=>rej(new Error('timed out')), ms); p.then(v=>{ clearTimeout(h); res(v); }, e=>{ clearTimeout(h); rej(e); }); }); }
+async function getPipe(){
+  if(wPipes[wModel]) return wPipes[wModel];
+  const T=await lib();
+  const name='onnx-community/whisper-'+wModel+'.en';
+  const opts={ progress_callback: progressTo('the '+wModel+' Whisper model') };
+  let gpu=false; try{ gpu=!!(navigator.gpu && await navigator.gpu.requestAdapter()); }catch(e){ gpu=false; }
+  let pipe;
+  if(gpu){ try{ pipe=await withTimeout(T.pipeline('automatic-speech-recognition', name, {...opts, device:'webgpu', dtype:'fp32'}), 120000); }catch(e){ console.warn('webgpu path failed, using cpu', e); pipe=null; } }
+  if(!pipe) pipe=await T.pipeline('automatic-speech-recognition', name, {...opts, device:'wasm'});
+  wPipes[wModel]=pipe; return pipe;
+}
+async function getDiarizer(){
+  if(wDia) return wDia;
+  const T=await lib(); const id='onnx-community/pyannote-segmentation-3.0'; const pc=progressTo('the speaker model');
+  const model=await T.AutoModelForAudioFrameClassification.from_pretrained(id, {progress_callback:pc});
+  const processor=await T.AutoProcessor.from_pretrained(id, {progress_callback:pc});
+  wDia={model, processor}; return wDia;
+}
+async function diarize(audio){
+  const {model, processor}=await getDiarizer();
+  const inputs=await processor(audio); const {logits}=await model(inputs);
+  let segs=processor.post_process_speaker_diarization(logits, audio.length);
+  if(Array.isArray(segs[0])) segs=segs[0];                     // one list per batch item
+  return segs.filter(g=>g.id>0 && (g.end-g.start)>0.25).map(g=>({id:g.id, s:g.start, e:g.end}));   // id 0 is silence
+}
+function assignSpeakers(c, segs, ends){
+  // ends: optional map line index -> end time; otherwise the next line's start
+  const total={}; for(const g of segs){ total[g.id]=(total[g.id]||0)+(g.e-g.s); }
+  const ids=Object.keys(total).sort((a,b)=>total[b]-total[a]); if(!ids.length) return 0;
+  const teacher=+ids[0];
+  const mine=state.lines.map((l,i)=>({l,i})).filter(x=>(x.l.c||0)===c && x.l.t!=null);
+  let prev='T', changedN=0;
+  mine.forEach((x,k)=>{
+    const s0=x.l.t, e0 = (ends&&ends[x.i]!=null) ? ends[x.i] : (k+1<mine.length ? mine[k+1].l.t : s0+4);
+    const ov={}; for(const g of segs){ const o=Math.min(e0,g.e)-Math.max(s0,g.s); if(o>0) ov[g.id]=(ov[g.id]||0)+o; }
+    const best=Object.keys(ov).sort((a,b)=>ov[b]-ov[a])[0];
+    const who = best==null ? prev : (+best===teacher ? 'T' : 'S');
+    if(x.l.who!==who) changedN++; x.l.who=who; prev=who;
+  });
+  return ids.length;
+}
+async function runWhisper(withWords){
+  if(wBusy) return; const clip=clips[cur]; if(!clip){ toast('Load or record something first', 1600); return; }
+  const c=cur; const mine=state.lines.filter(l=>(l.c||0)===c).length;
+  if(withWords && mine && !await ask('Replace the '+mine+' lines for '+clipName(c)+' with Whisper\'s transcript? Colors on those lines are cleared.', 'Replace')) return;
+  if(!withWords && !mine){ toast('No lines for this recording yet - use Transcribe + speakers', 2200); return; }
+  wBusy=true; $('#btnWhisper').disabled=true; $('#btnSpeakers').disabled=true; $('#btnRec').disabled=true;
+  try{
+    wStatus('Reading the audio...', 0);
+    const audio=await decodeTo16k(clip.blob); const secs=audio.length/16000;
+    let ends=null;
+    if(withWords){
+      const pipe=await getPipe();
+      let done=0; wStatus('Writing the words for '+fmt(secs)+' of audio...', 0);
+      const out=await pipe(audio, { return_timestamps:true, chunk_length_s:30, stride_length_s:5, chunk_callback:()=>{ done+=25; wStatus('Writing the words... about '+fmt(Math.min(secs,done))+' of '+fmt(secs), Math.min(1,done/secs)); } });
+      const chunks=(out.chunks||[]).filter(ch=>ch.text&&ch.text.trim());
+      if(!chunks.length){ wStatus('Whisper heard no speech in this recording.'); return; }
+      const fresh=chunks.map(ch=>({t:Math.max(0,+ch.timestamp[0]||0), _e:(ch.timestamp[1]!=null?+ch.timestamp[1]:null), c, who:'T', segs:[{text:ch.text.trim(), code:null}]}));
+      state.lines = state.lines.filter(l=>(l.c||0)<c).concat(fresh, state.lines.filter(l=>(l.c||0)>c));
+      ends={}; state.lines.forEach((l,i)=>{ if(l._e!=null){ ends[i]=l._e; } delete l._e; });
+      state.sample=false;
+    }
+    wStatus('Telling the voices apart...', 0);
+    let n=0;
+    try{ const segs=await diarize(audio); n=assignSpeakers(c, segs, ends); }
+    catch(e){ console.error(e); wStatus('The words are in; the speaker model could not run here ('+(e&&e.message||e)+'). Speakers can be set with the T / S / A keys.'); changed(); return; }
+    changed();
+    const lines=state.lines.filter(l=>(l.c||0)===c).length;
+    wStatus((withWords? lines+' lines written. ' : '') + (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'One voice found, so every line is T.'));
+    toast('Done, on this computer');
+  }catch(err){
+    console.error(err); wStatus('This could not run here: '+(err&&err.message||err)+'. Chrome or Edge on a laptop is the surest bet.');
+  }finally{ wBusy=false; $('#btnWhisper').disabled=false; $('#btnSpeakers').disabled=false; $('#btnRec').disabled=recording; }
+}
+$('#btnWhisper').addEventListener('click', ()=>runWhisper(true));
+$('#btnSpeakers').addEventListener('click', ()=>runWhisper(false));
+
 /* ---------------- files in ---------------- */
 $('#fileMedia').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; if(recording) return; if(state.sample){ state.lines=[]; state.sample=false; state.clips=[]; clips=[]; cur=-1; state.title=f.name.replace(/\.[^.]+$/,''); } const i=clips.length; clips.push({blob:f, type:f.type}); state.clips[i]={dur:0, name:f.name.replace(/\.[^.]+$/,'')}; state.mediaName=f.name; loadClip(i); saveMedia(); changed(); toast((i?'Added as recording '+(i+1):'Media loaded')+'. Bring a transcript, or type lines in.'); e.target.value=''; });
 $('#fileText').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; const text=await f.text(); const lines=parseTranscript(text, f.name); if(!lines.length){ toast('No lines found in that file', 2500); return; } if(state.lines.length && !state.sample && !await ask('Replace the current transcript with this file?', 'Replace')) return; lines.forEach(l=>l.c=Math.max(0,clips.length-1)); state.lines=lines; state.sample=false; if(!mediaAny()) state.title=f.name.replace(/\.[^.]+$/,''); changed(); toast(lines.length+' lines loaded'); e.target.value=''; });
@@ -713,7 +894,7 @@ async function saveFile(filename, data){
   const blob = data instanceof Blob ? data : new Blob([data], {type:'application/octet-stream'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); toast('Downloading '+filename);
 }
-const stem = () => (state.title||'transcript').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').slice(0,60) || 'transcript';
+const stem = () => ((state.title||'transcript').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').slice(0,60) || 'transcript') + ' - ' + APP.replace(/\s+/g,'-');
 function exportRows(){ const rows=[]; let lastC=-1; for(const l of state.lines){ const c=l.c||0; if(state.clips.length>1 && c!==lastC){ lastC=c; rows.push({mark:clipName(c)+' · starts '+fmt(clipOffset(c))}); } rows.push({l}); } return rows; }
 function tallyRows(){ const c=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const s of l.segs) if(s.code&&s.text.trim()) c[s.code]++; return STRATS.map(s=>[s,c[s.key]]); }
 function exportHtml(){
@@ -722,13 +903,13 @@ function exportHtml(){
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(state.title||'Coded transcript')}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
-<p class="eyebrow">Cognitive Apprenticeship · Classroom Moments</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
+<p class="eyebrow">${esc(BRAND)} · ${esc(APP)}</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
 <div class="grid"><div class="card">${lines||'<p>No lines.</p>'}</div>
-<aside><h2>Color key</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n}</span></span>`).join('')}<div class="tally"><div><span>coded spans</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div></div></body></html>`;
+<aside><h2>Color key</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n}</span></span>`).join('')}<div class="tally"><div><span>coded spans</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}</p></div></body></html>`;
 }
 function exportTxt(){
   const rows=tallyRows();
-  const head=[(state.title||'Transcript'), 'Cognitive Apprenticeship - Classroom Moments', 'Coded '+new Date().toLocaleString(), '', 'TALLY', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n}`), '', 'TRANSCRIPT  (coded spans are wrapped like {Modeling: ...})', ''];
+  const head=[(state.title||'Transcript'), APP+'\u2122 - '+BRAND, TAGLINE, 'Coded '+new Date().toLocaleString(), COPYRIGHT, '', 'TALLY', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n}`), '', 'TRANSCRIPT  (coded spans are wrapped like {Modeling: ...})', ''];
   const body=exportRows().map(r=>r.mark ? `\n-- ${r.mark} --` : (l=>`${fmt(absT(l)).padStart(5)}  ${(l.who?l.who+':':'').padEnd(3)} ` + l.segs.map(s=>s.code?`{${BY[s.code].name}: ${s.text}}`:s.text).join(''))(r.l));
   return head.concat(body).join('\n')+'\n';
 }
@@ -739,7 +920,7 @@ async function exportDocx(){
   const para=(runs,{after=120,before=0,ind}={})=>`<w:p><w:pPr><w:spacing w:before="${before}" w:after="${after}"/>${ind?`<w:ind w:left="${ind}" w:hanging="${ind}"/>`:''}</w:pPr>${runs}</w:p>`;
   const rows=tallyRows();
   let body='';
-  body+=para(run('COGNITIVE APPRENTICESHIP · CLASSROOM MOMENTS',{color:'B9784A',b:true,sz:18}),{after:60});
+  body+=para(run((BRAND+' · '+APP).toUpperCase(),{color:'B9784A',b:true,sz:18}),{after:60});
   body+=para(run(state.title||'Coded transcript',{font:'Georgia',sz:44,b:false}),{after:80});
   body+=para(run(`${state.lines.length} lines · coded ${new Date().toLocaleDateString()}`,{color:'6B665C',sz:18}),{after:240});
   body+=para(run('TALLY',{color:'6B665C',b:true,sz:18}),{after:60});
@@ -755,6 +936,8 @@ async function exportDocx(){
     body+=para(r,{after:100,ind:900});
   }
   body+=para(run('Color key: ',{color:'6B665C',sz:18})+STRATS.map(st=>run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})).join(''),{before:240});
+  body+=para(run(APP+'\u2122 · '+BRAND+' · '+TAGLINE,{color:'8A867E',sz:16}),{before:120});
+  body+=para(run(COPYRIGHT,{color:'8A867E',sz:16}),{after:0});
   const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1200" w:right="1200" w:bottom="1200" w:left="1200" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -772,7 +955,7 @@ function richHtml(){
   const rows=tallyRows();
   const lines=exportRows().map(r=>r.mark?`<p style="margin:12px 0 4px;font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.1em;color:#B9784A"><b>${esc(r.mark.toUpperCase())}</b></p>`:(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(absT(l))}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`)(r.l)).join('');
   const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n}`).join(' &nbsp;·&nbsp; ');
-  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}</div>`;
+  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-size:8pt;letter-spacing:.1em;color:#B9784A;margin:0 0 2px"><b>${esc((BRAND+' · '+APP).toUpperCase())}</b></p><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}<p style="font-size:8pt;color:#8A867E;margin-top:10px">${esc(APP)}\u2122 · ${esc(BRAND)}<br>${esc(COPYRIGHT)}</p></div>`;
 }
 function richText(){ return exportTxt(); }
 $('#copyRich').addEventListener('click', async ()=>{
@@ -795,7 +978,7 @@ $('#copyRich').addEventListener('click', async ()=>{
 $('#dlDocx').addEventListener('click', async ()=>{ try{ const b=await exportDocx(); await saveFile(stem()+'-coded.docx', b); }catch(err){ toast('Could not build the Word file: '+(err&&err.message||err), 4000); } });
 $('#dlHtml').addEventListener('click', ()=>saveFile(stem()+'-coded.html', exportHtml()));
 $('#dlTxt').addEventListener('click', ()=>saveFile(stem()+'-coded.txt', exportTxt()));
-$('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:'Classroom Moments Coder', version:1, ...state}, null, 2)));
+$('#dlJson').addEventListener('click', ()=>saveFile(stem()+'-project.json', JSON.stringify({app:APP, brand:BRAND, version:2, ...state}, null, 2)));
 $('#dlMedia').addEventListener('click', ()=>{ const c=clips[cur]; if(!c) return; saveFile(stem()+'-'+clipName(cur).toLowerCase().replace(/\s+/g,'-')+'.'+ext(c.blob.type), c.blob); });
 
 /* ---------------- persistence (this browser only) ---------------- */
