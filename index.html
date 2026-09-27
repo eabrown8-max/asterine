@@ -217,6 +217,8 @@ h2.peach::before{background:var(--peach)}
 .chip[data-code="coaching"]{background:var(--chip-coaching)}
 .chip[data-code="reflecting"]{background:var(--chip-reflecting)}
 .chip[data-code="fading"]{background:var(--chip-fading)}
+.movedef{margin:10px 0 0;min-height:3.2em;font-size:13px;line-height:1.45;color:var(--soft);padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.movedef b{font-weight:600;margin-right:4px}
 .howto{font-size:12.5px;color:var(--soft);line-height:1.5;margin:10px 0 0;padding-left:0;list-style:none}
 .howto li{padding-left:14px;position:relative;margin-bottom:5px}
 .howto li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--peach)}
@@ -406,6 +408,7 @@ h2.peach::before{background:var(--peach)}
       <section class="block">
         <h2>Teaching Moves</h2>
         <div class="key" id="key"></div>
+        <p class="movedef" id="moveDef"><i>Hover or pick a move to see what it means.</i></p>
         <ul class="howto">
           <li>Pick a move, then click lines or drag over words.</li>
           <li>Pick another move and click again to change it.</li>
@@ -458,13 +461,13 @@ const TAGLINE='See the art in your teaching.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
 (function(){ const a=agreement(); $('#whoIn').textContent = a ? `Signed in as ${a.name} (beta terms accepted ${new Date(a.when).toLocaleDateString()}).` : ''; })();
 $('#signOut').addEventListener('click', e=>{ e.preventDefault(); try{ localStorage.removeItem('cm-beta-ok'); localStorage.removeItem('cm-beta-agreement'); }catch(x){} location.reload(); });
-const STRATS = [   // Teaching Moves, in Beth's order and words (2026-09-26); Fading is in the deck only
-  {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
-  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
-  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
-  {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208'},
-  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
-  {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A'},
+const STRATS = [   // Teaching Moves, in Beth's order and words (2026-09-26); definitions from the AEI deck; Fading is in the deck only
+  {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B', def:'Teacher artfully demonstrates artistic materials and processes.'},
+  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B', def:'Teacher provides customized feedback during learning.'},
+  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E', def:'Teacher provides supports in student learning.'},
+  {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208', def:'Students communicate their understanding.'},
+  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0', def:'Students examine their process and product.'},
+  {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A', def:'Students use artistic materials in new ways.'},
 ];
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
 const WHO = ['T','S','Ss',''];
@@ -587,7 +590,8 @@ function renderKey(){
   const k=$('#key'); k.innerHTML='';
   STRATS.forEach((s,i)=>{
     const b=document.createElement('button'); b.type='button'; b.className='chip'; b.dataset.code=s.key;
-    b.innerHTML=`<span>${s.name}</span><kbd>${i+1}</kbd>`;
+    b.innerHTML=`<span>${s.name}</span><kbd>${i+1}</kbd>`; b.title=s.def;
+    b.addEventListener('mouseenter', ()=>showDef(s)); b.addEventListener('focus', ()=>showDef(s)); b.addEventListener('mouseleave', ()=>showDef(null)); b.addEventListener('blur', ()=>showDef(null));
     b.addEventListener('mousedown', e=>e.preventDefault());
     b.addEventListener('click', ()=>pick(s.key));
     k.appendChild(b);
@@ -599,7 +603,8 @@ function renderKey(){
   k.appendChild(c);
   updateKey();
 }
-function updateKey(){ document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on', b.dataset.code===active)); }
+function showDef(s){ const d=$('#moveDef'); const cur = s || (active && BY[active]) || null; if(!cur){ d.innerHTML='<i>Hover or pick a move to see what it means.</i>'; return; } d.innerHTML=`<b style="color:var(--s-${cur.key})">${cur.name}</b> ${esc(cur.def)}`; }
+function updateKey(){ document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on', b.dataset.code===active)); showDef(null); }
 function sightModel(){
   const lines=state.lines; const n=lines.length;
   const timed = state.clips.length>0 && lines.some(l=>l.t!=null);
@@ -1049,7 +1054,7 @@ function exportHtml(){
 <p class="eyebrow">${esc(BRAND)} · ${esc(APP)}</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
 <div class="grid" style="grid-template-columns:minmax(0,1fr) 210px"><div class="card">${lines||'<p>No lines.</p>'}</div>
 <div style="grid-column:1/-1;background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:16px 18px"><h2>Sightline</h2>${sightSVG({export:true, width:940}).replace(/ width="940" height="\d+(?:\.\d+)?"/,' style="width:100%;height:auto"')}</div>
-<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#9E8AA3">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div></body></html>`;
+<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}" title="${esc(s.def)}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div style="margin-top:12px;font-size:11.5px;line-height:1.5;color:#6B5470">${STRATS.map(s=>`<div><b style="color:${s.text}">${s.name}</b> ${esc(s.def)}</div>`).join('')}</div><div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#9E8AA3">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div></body></html>`;
 }
 function exportTxt(){
   const rows=tallyRows();
@@ -1081,7 +1086,8 @@ async function exportDocx(){
     for(const sg of l.segs) r+=sg.code ? run(sg.text,{color:BY[sg.code].text.slice(1),b:true}) : run(sg.text,{color:'23211D'});
     body+=para(r,{after:100,ind:900});
   }
-  body+=para(run('Teaching Moves: ',{color:'6B5470',sz:18})+STRATS.map(st=>run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})).join(''),{before:240});
+  body+=para(run('Teaching Moves',{color:'6B5470',b:true,sz:18}),{before:240,after:60});
+  for(const st of STRATS) body+=para(run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})+run(st.def,{color:'6B5470',sz:18}),{after:20});
   body+=para(run(APP+'\u2122 · '+BRAND+' · '+TAGLINE,{color:'9E8AA3',sz:16}),{before:120});
   body+=para(run(COPYRIGHT,{color:'9E8AA3',sz:16}),{after:0});
   if(agreementLine()) body+=para(run(agreementLine(),{color:'9E8AA3',sz:16}),{after:0});
