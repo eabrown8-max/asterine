@@ -29,6 +29,9 @@
   5. Fonts (fonts.googleapis.com) and one library (JSZip from cdnjs) load like any web page; they
      receive no recording, transcript or personal data.
   6. The beta access code is checked in the browser against a hash; nothing is transmitted.
+  7. On entry, the tester's first name, last name and the date are posted to a Google Form owned by
+     the developers as the record of their agreement to the beta terms. That is the only data the
+     page ever sends, and it contains no recording, transcript or student information.
 -->
 <title>Asterine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -275,7 +278,7 @@ h2.peach::before{background:var(--peach)}
         <p><b>3. Termination.</b> The Owner may end your access at any time, for any reason, without notice. Your confidentiality and ownership obligations survive the end of your access.</p>
       </details>
     </div>
-    <label class="agree"><input type="checkbox" id="gateAgree"> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms. My agreement is recorded under my name, in this browser, and noted on the files I export.</span></label>
+    <label class="agree"><input type="checkbox" id="gateAgree"> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms. My first name, last name and today's date are sent to the developers as the record of this agreement; nothing else ever leaves this device.</span></label>
     <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter application</button><span class="err" id="gateErr"></span></div>
     <p class="fine" id="gateLegal"></p>
   </form>
@@ -434,6 +437,8 @@ const STAGE='Private Beta';
 const COPYRIGHT=`\u00a9 ${YEAR} ${OWNER}. All rights reserved. ${APP}\u2122 and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
 function agreement(){ try{ const a=JSON.parse(localStorage.getItem('cm-beta-agreement')||'null'); if(a&&a.name) return a; }catch(e){} return null; }
 function agreementLine(){ const a=agreement(); return a ? `Prepared by ${a.name} · beta terms accepted ${new Date(a.when).toLocaleDateString()}` : ''; }
+const AGREE_FORM={ url:'https://docs.google.com/forms/d/e/1FAIpQLSc6Xc6vZoFlfY3H7QEyHTKde0sYoYAx38pLPgqklMo3GjgN-Q/formResponse', first:'entry.258640741', last:'entry.2071736775', date:'entry.673108979' };   // Beth's Google Form: first name, last name, date - the only thing the page ever sends anywhere
+function recordAgreement(first, last){ try{ const fd=new FormData(); fd.append(AGREE_FORM.first, first); fd.append(AGREE_FORM.last, last); fd.append(AGREE_FORM.date, new Date().toLocaleString()); fetch(AGREE_FORM.url, {method:'POST', mode:'no-cors', body:fd, keepalive:true}).catch(()=>{}); }catch(e){} }
 const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
 const TAGLINE='See the art in your teaching.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
@@ -514,6 +519,7 @@ const sample = () => ({
     let h=''; try{ h=await sha(code); }catch(x){ err.textContent='This browser could not check the code. Try again, or use a different browser.'; return; }
     if(h!==GATE_HASH){ err.textContent='That code is not right. Check with the person who invited you.'; $('#gateCode').select(); return; }
     try{ localStorage.setItem('cm-beta-ok','1'); localStorage.setItem('cm-beta-agreement', JSON.stringify({name, first, last, when:new Date().toISOString(), app:APP, terms:'Private Beta Confidentiality & Privacy Terms'})); }catch(x){}
+    recordAgreement(first, last);
     g.hidden=true; $('#app').hidden=false; $('#whoIn').textContent=`Signed in as ${name} (beta terms accepted ${new Date().toLocaleDateString()}).`;
   });
 })();
