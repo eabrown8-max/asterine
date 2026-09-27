@@ -1023,14 +1023,14 @@ function exportRows(){ const rows=[]; let lastC=-1; for(const l of state.lines){
 function tallyRows(){ const c=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const s of l.segs) if(s.code&&s.text.trim()) c[s.code]++; return STRATS.map(s=>[s,c[s.key]]); }
 function exportHtml(){
   const rows=tallyRows();
-  const lines=exportRows().map(r=>r.mark?`<div style="margin:14px 0 6px;font:600 10.5px sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#B9784A">${esc(r.mark)}</div>`:(l=>`<div class="line"><span class="t">${fmt(absT(l))}</span><span class="who">${l.who?esc(l.who)+':':''}</span><span class="txt">${l.segs.map(s=>s.code?`<b style="color:${BY[s.code].text}">${esc(s.text)}</b>`:esc(s.text)).join('')}</span></div>`)(r.l)).join('\n');
+  const lines=exportRows().map(r=>r.mark?`<div style="margin:14px 0 6px;font:600 10.5px sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1F5BB5">${esc(r.mark)}</div>`:(l=>`<div class="line"><span class="t">${fmt(absT(l))}</span><span class="who">${l.who?esc(l.who)+':':''}</span><span class="txt">${l.segs.map(s=>s.code?`<b style="color:${BY[s.code].text}">${esc(s.text)}</b>`:esc(s.text)).join('')}</span></div>`)(r.l)).join('\n');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(state.title||'Coded transcript')}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
-<style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
+<style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1F5BB5;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B5470;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#9E8AA3}.who{font-weight:600;color:#6B5470}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B5470;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
 <p class="eyebrow">${esc(BRAND)} · ${esc(APP)}</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
 <div class="grid" style="grid-template-columns:minmax(0,1fr) 210px"><div class="card">${lines||'<p>No lines.</p>'}</div>
 <div style="grid-column:1/-1;background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:16px 18px"><h2>Sightline</h2>${sightSVG({export:true, width:940}).replace(/ width="940" height="\d+(?:\.\d+)?"/,' style="width:100%;height:auto"')}</div>
-<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div></body></html>`;
+<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#9E8AA3">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div></body></html>`;
 }
 function exportTxt(){
   const rows=tallyRows();
@@ -1046,26 +1046,26 @@ async function exportDocx(){
   const para=(runs,{after=120,before=0,ind}={})=>`<w:p><w:pPr><w:spacing w:before="${before}" w:after="${after}"/>${ind?`<w:ind w:left="${ind}" w:hanging="${ind}"/>`:''}</w:pPr>${runs}</w:p>`;
   const rows=tallyRows();
   let body='';
-  body+=para(run((BRAND+' · '+APP).toUpperCase(),{color:'B9784A',b:true,sz:18}),{after:60});
+  body+=para(run((BRAND+' · '+APP).toUpperCase(),{color:'1F5BB5',b:true,sz:18}),{after:60});
   body+=para(run(state.title||'Coded transcript',{font:'Georgia',sz:44,b:false}),{after:80});
-  body+=para(run(`${state.lines.length} lines · coded ${new Date().toLocaleDateString()}`,{color:'6B665C',sz:18}),{after:240});
-  body+=para(run('SIGHTLINE',{color:'6B665C',b:true,sz:18}),{after:60});
+  body+=para(run(`${state.lines.length} lines · coded ${new Date().toLocaleDateString()}`,{color:'6B5470',sz:18}),{after:240});
+  body+=para(run('SIGHTLINE',{color:'6B5470',b:true,sz:18}),{after:60});
   if(pic){ const cx=6248400, cy=Math.round(cx*pic.H/pic.W); body+=`<w:p><w:pPr><w:spacing w:before="0" w:after="160"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="Sightline"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="sightline.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdSight"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`; }
-  for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n||'not yet'}`,{color:n?'23211D':'8A867E',i:!n}),{after:20});
-  body+=para(run(`moves marked   ${rows.reduce((a,[,n])=>a+n,0)}`,{color:'6B665C',sz:18}),{after:240,before:60});
-  body+=para(run('CLASSROOM MOMENTS',{color:'6B665C',b:true,sz:18}),{after:80});
+  for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n||'not yet'}`,{color:n?'23211D':'9E8AA3',i:!n}),{after:20});
+  body+=para(run(`moves marked   ${rows.reduce((a,[,n])=>a+n,0)}`,{color:'6B5470',sz:18}),{after:240,before:60});
+  body+=para(run('CLASSROOM MOMENTS',{color:'6B5470',b:true,sz:18}),{after:80});
   for(const row of exportRows()){
-    if(row.mark){ body+=para(run(row.mark.toUpperCase(),{color:'B9784A',b:true,sz:16}),{before:200,after:80}); continue; }
+    if(row.mark){ body+=para(run(row.mark.toUpperCase(),{color:'1F5BB5',b:true,sz:16}),{before:200,after:80}); continue; }
     const l=row.l;
-    let r=run(fmt(absT(l)).padStart(5)+'  ',{color:'8A867E',font:'Menlo',sz:18});
-    if(l.who) r+=run(l.who+': ',{color:'6B665C',b:true});
+    let r=run(fmt(absT(l)).padStart(5)+'  ',{color:'9E8AA3',font:'Menlo',sz:18});
+    if(l.who) r+=run(l.who+': ',{color:'6B5470',b:true});
     for(const sg of l.segs) r+=sg.code ? run(sg.text,{color:BY[sg.code].text.slice(1),b:true}) : run(sg.text,{color:'23211D'});
     body+=para(r,{after:100,ind:900});
   }
-  body+=para(run('Teaching Moves: ',{color:'6B665C',sz:18})+STRATS.map(st=>run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})).join(''),{before:240});
-  body+=para(run(APP+'\u2122 · '+BRAND+' · '+TAGLINE,{color:'8A867E',sz:16}),{before:120});
-  body+=para(run(COPYRIGHT,{color:'8A867E',sz:16}),{after:0});
-  if(agreementLine()) body+=para(run(agreementLine(),{color:'8A867E',sz:16}),{after:0});
+  body+=para(run('Teaching Moves: ',{color:'6B5470',sz:18})+STRATS.map(st=>run(st.name+'  ',{color:st.text.slice(1),b:true,sz:18})).join(''),{before:240});
+  body+=para(run(APP+'\u2122 · '+BRAND+' · '+TAGLINE,{color:'9E8AA3',sz:16}),{before:120});
+  body+=para(run(COPYRIGHT,{color:'9E8AA3',sz:16}),{after:0});
+  if(agreementLine()) body+=para(run(agreementLine(),{color:'9E8AA3',sz:16}),{after:0});
   const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1200" w:right="1200" w:bottom="1200" w:left="1200" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1081,9 +1081,9 @@ async function exportDocx(){
 }
 function richHtml(){
   const rows=tallyRows();
-  const lines=exportRows().map(r=>r.mark?`<p style="margin:12px 0 4px;font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.1em;color:#B9784A"><b>${esc(r.mark.toUpperCase())}</b></p>`:(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(absT(l))}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`)(r.l)).join('');
+  const lines=exportRows().map(r=>r.mark?`<p style="margin:12px 0 4px;font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.1em;color:#1F5BB5"><b>${esc(r.mark.toUpperCase())}</b></p>`:(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#9E8AA3;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(absT(l))}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B5470">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`)(r.l)).join('');
   const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n||'<i>not yet</i>'}`).join(' &nbsp;·&nbsp; ');
-  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-size:8pt;letter-spacing:.1em;color:#B9784A;margin:0 0 2px"><b>${esc((BRAND+' · '+APP).toUpperCase())}</b></p><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}<p style="font-size:8pt;color:#8A867E;margin-top:10px">${esc(APP)}\u2122 · ${esc(BRAND)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div>`;
+  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-size:8pt;letter-spacing:.1em;color:#1F5BB5;margin:0 0 2px"><b>${esc((BRAND+' · '+APP).toUpperCase())}</b></p><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B5470;margin:0 0 10px">${tally}</p>${lines}<p style="font-size:8pt;color:#9E8AA3;margin-top:10px">${esc(APP)}\u2122 · ${esc(BRAND)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div>`;
 }
 function richText(){ return exportTxt(); }
 $('#copyRich').addEventListener('click', async ()=>{
