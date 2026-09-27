@@ -1,6 +1,6 @@
 # Incandescence™ · Art of Teaching Studio · Private Beta
 
-Record or paste a classroom moment, get a transcript, and color-code it against the seven Cognitive Apprenticeship strategies (Collins, Brown & Newman, 1989). Everything runs in the browser; recordings stay on the user's device.
+Record or paste a classroom moment, get a transcript, and color-code it against six Cognitive Apprenticeship Teaching Moves (Collins, Brown & Newman, 1989). Everything runs in the browser; recordings stay on the user's device.
 
 Invite-only beta. Access requires a code and agreement to the Private Beta Confidentiality Terms shown on entry.
 

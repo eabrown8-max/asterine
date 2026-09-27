@@ -357,7 +357,7 @@ h2.peach::before{background:var(--peach)}
         <ul class="howto">
           <li>Pick a move, then click lines or drag over words.</li>
           <li>Pick another move and click again to change it.</li>
-          <li>Keys 1 to 7 pick a move, 0 uncodes.</li>
+          <li>Keys 1 to 6 pick a move, 0 uncodes.</li>
         </ul>
       </section>
       <section class="block">
@@ -401,8 +401,7 @@ const STRATS = [
   {key:'exploring',    name:'Exploring',    chip:'#B8407A', text:'#B8407A'},
   {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
   {key:'reflecting',   name:'Reflecting',   chip:'#6B4FA0', text:'#6B4FA0'},
-  {key:'fading',       name:'Fading',       chip:'#84807A', text:'#6B665C'},
-];
+];   // Fading is in the deck but not in the app (Beth, 2026-09-26)
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
 const WHO = ['T','S','Ss',''];
 
@@ -473,7 +472,7 @@ function ask(msg, yes){
 }
 function toast(msg, ms=2200){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._h); toast._h=setTimeout(()=>t.classList.remove('show'), ms); }
 function normalize(l){ // merge adjacent equal codes, drop empties
-  const out=[]; for(const s of l.segs){ if(!s.text) continue; const p=out[out.length-1]; if(p && p.code===s.code) p.text+=s.text; else out.push({text:s.text, code:s.code||null}); }
+  const out=[]; for(const s of l.segs){ if(!s.text) continue; if(s.code && !BY[s.code]) s.code=null; const p=out[out.length-1]; if(p && p.code===s.code) p.text+=s.text; else out.push({text:s.text, code:s.code||null}); }
   if(!out.length) out.push({text:'', code:null}); l.segs=out;
 }
 function applyCode(a, b, code){ // a,b = {li,off}; code = key or null
@@ -627,7 +626,7 @@ function startEdit(li, txt){
 }
 document.addEventListener('keydown', e=>{
   if(editing!==null || e.target.matches('input,textarea,[contenteditable="true"]') || e.metaKey||e.ctrlKey||e.altKey) return;
-  if(e.key>='1'&&e.key<='7'){ pick(STRATS[+e.key-1].key); }
+  if(e.key>='1'&&e.key<=String(STRATS.length)){ pick(STRATS[+e.key-1].key); }
   else if(e.key==='0'){ pick('clear'); }
   else if(/^[tsaTSA]$/.test(e.key)){
     const w = e.key.toLowerCase()==='t' ? 'T' : e.key.toLowerCase()==='s' ? 'S' : 'Ss';
