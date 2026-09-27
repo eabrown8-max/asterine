@@ -1,0 +1,153 @@
+<!doctype html>
+<!-- (c) 2026 Dr. Elizabeth Brown and Dr. Diana Hawley. All rights reserved. Asterine(TM) and its associated color-coded instructional analysis workflows are trademarks of Dr. Elizabeth Brown and Dr. Diana Hawley. Private beta. -->
+<!-- Read-only viewer: shows a transcript carried inside the link (#z=...). No recording, no coding tools, no gate. Nothing is stored anywhere. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+<title>Asterine · shared transcript</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
+<style>
+:root{--paper:#E7E4DC;--surface:#F4F2ED;--raised:#FBFAF7;--line:#D5D0C4;--ink:#1F1B16;--soft:#6B5470;--mute:#9E8AA3;--accent:#1F5BB5;--peach:#A84A6E;
+  --s-modeling:#C8412B;--s-coaching:#2E7D5B;--s-scaffolding:#2F4B9E;--s-articulating:#9E6208;--s-reflecting:#6B4FA0;--s-exploring:#B8407A;
+  --serif:"Fraunces",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#17140F;--surface:#201C16;--raised:#27221B;--line:#3A3328;--ink:#EDE8DF;--soft:#CDB9D2;--mute:#95839A;--accent:#6FA3F0;--peach:#E08AAB;
+  --s-modeling:#E8705C;--s-coaching:#66C296;--s-scaffolding:#8FA6E8;--s-articulating:#E6A84A;--s-reflecting:#B39BE0;--s-exploring:#E27BB2}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 48px}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--peach);margin:0 0 8px}
+h1{font:500 30px/1.05 var(--serif);margin:0 0 4px;letter-spacing:-.01em}
+h1 sup{font-size:.4em;font-weight:500;vertical-align:top;margin-left:2px;color:var(--soft)}
+.tagline{margin:6px 0 0;font:italic 15px/1.3 var(--serif);color:var(--soft)}
+.title{font:500 22px/1.2 var(--serif);margin:26px 0 4px}
+.meta{font:12px var(--mono);color:var(--soft);margin-bottom:18px}
+h2{font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 10px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:3px;height:12px;background:var(--accent);border-radius:1px}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px 22px;margin-bottom:20px}
+.clipmark{display:flex;align-items:center;gap:10px;margin:14px 0 6px;font:600 10.5px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--peach)}
+.clipmark::after{content:"";flex:1;height:1px;background:var(--line)}
+.clipmark .n{font:500 11px var(--mono);color:var(--mute);letter-spacing:0;text-transform:none}
+.line{display:grid;grid-template-columns:5ch 3.4ch minmax(0,1fr);gap:0 8px;padding:5px 8px}
+.line .t{font:12px/1.85 var(--mono);color:var(--mute)}
+.line .who{font:600 13.5px/1.7 var(--sans);color:var(--soft)}
+.line .txt{font-size:15.5px;line-height:1.55;word-wrap:break-word}
+.seg[data-code]{font-weight:600}
+.seg[data-code="modeling"]{color:var(--s-modeling)}.seg[data-code="scaffolding"]{color:var(--s-scaffolding)}.seg[data-code="articulating"]{color:var(--s-articulating)}
+.seg[data-code="exploring"]{color:var(--s-exploring)}.seg[data-code="coaching"]{color:var(--s-coaching)}.seg[data-code="reflecting"]{color:var(--s-reflecting)}
+.sightline svg{display:block;width:100%;height:auto}
+.sightline svg .lane-alt{fill:var(--ink);opacity:.04}
+.key{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{border-radius:6px;padding:6px 10px;color:#fff;font-weight:600;font-size:12.5px}
+.empty{color:var(--soft);padding:40px 10px;text-align:center;line-height:1.6}
+.legal{margin-top:34px;padding-top:12px;border-top:1px solid var(--line);font:11.5px/1.55 var(--mono);color:var(--mute)}
+.note{font-size:12.5px;color:var(--soft);margin:8px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Art of Teaching Studio · Asterine<sup>™</sup> · shared, read-only</p>
+  <h1 id="title">Shared transcript</h1>
+  <p class="tagline">See the art in your teaching.</p>
+  <div class="meta" id="meta"></div>
+  <div id="body"><div class="empty">Opening the shared transcript…</div></div>
+  <p class="legal" id="legal"></p>
+</div>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const STRATS = [
+  {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
+  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
+  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
+  {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208'},
+  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
+  {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A'},
+];
+const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
+const APP='Asterine', BRAND='Art of Teaching Studio', OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
+const COPYRIGHT=`© 2026 ${OWNER}. All rights reserved. ${APP}™ and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
+$('#legal').textContent=COPYRIGHT;
+let state={title:'', lines:[], clips:[]};
+const fmt = s => { if(s==null) return '–'; s = Math.max(0, Math.floor(s||0)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); };
+const lineText = l => l.segs.map(s => s.text).join('');
+function clipOffset(c){ let o=0; for(let j=0;j<Math.min(c||0, state.clips.length);j++) o+=state.clips[j].dur||0; return o; }
+function absT(l){ return l.t==null ? null : clipOffset(l.c||0)+l.t; }
+function clipName(c){ return (state.clips[c]&&state.clips[c].name) || ('Recording '+(c+1)); }
+function sightModel(){
+  const lines=state.lines; const n=lines.length;
+  const timed = state.clips.length>0 && lines.some(l=>l.t!=null);
+  let span;
+  if(timed){ const dur=clipOffset(state.clips.length); const last=Math.max(0,...lines.map(l=>absT(l)||0)); span=Math.max(dur, last+5, 10); }
+  else span=Math.max(n,1);
+  const marks=[];
+  lines.forEach((l,i)=>{
+    let s0,e0;
+    if(timed && l.t!=null){ s0=absT(l); const nxt=lines.slice(i+1).find(x=>x.t!=null); e0 = nxt ? Math.min(absT(nxt), s0+30) : Math.min(span, s0+6); if(e0<=s0) e0=s0+2; }
+    else if(timed){ return; }            // an untimed line in a timed session has no place on the axis
+    else { s0=i; e0=i+1; }
+    const len=lineText(l).length||1; let pos=0;
+    for(const sg of l.segs){ const a=pos, b=pos+sg.text.length; pos=b; if(!sg.code||!sg.text.trim()) continue; marks.push({code:sg.code, x0:s0+(e0-s0)*a/len, x1:s0+(e0-s0)*b/len, text:sg.text, who:l.who, at:timed?fmt(absT(l)):''}); }
+  });
+  const clipsAt = timed ? state.clips.slice(1).map((_,k)=>clipOffset(k+1)) : [];
+  return {marks, span, timed, clipsAt};
+}
+function sightSVG(opts={}){
+  const {marks, span, timed, clipsAt}=sightModel();
+  const ex=!!opts.export; const W=opts.width||1000; const narrow=W<640; const L=narrow?92:124, R=narrow?40:52, laneH=narrow?32:36, top=8, bottom=timed?30:22; const H=top+laneH*STRATS.length+bottom; const fs=narrow?12:13;
+  const x=v=> L + (v/span)*(W-L-R);
+  const ink = ex ? '#23211D' : 'var(--ink)', mute = ex ? '#9E8AA3' : 'var(--mute)', label = st => ex ? st.text : `var(--s-${st.key})`;
+  let out=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"${ex?` width="${W}" height="${H}"`:''} role="img" aria-label="Sightline: Teaching Moves across the lesson" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">`;
+  if(ex) out+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#FDFCF9"/>`;
+  STRATS.forEach((st,i)=>{
+    const y=top+i*laneH; const ms=marks.filter(m=>m.code===st.key);
+    if(i%2) out+=`<rect class="lane-alt" x="${L}" y="${y}" width="${W-L-R}" height="${laneH}" fill="${ex?'#000':ink}" opacity="0.04"/>`;
+    out+=`<text x="${L-12}" y="${y+laneH/2+4.5}" text-anchor="end" font-size="${fs}" font-weight="600" fill="${label(st)}">${st.name}</text>`;
+    if(!ms.length) out+=`<text x="${L+10}" y="${y+laneH/2+4}" font-size="11.5" font-style="italic" fill="${mute}">not yet</text>`;
+    for(const m of ms){ const x0=x(m.x0), w=Math.max(5, x(m.x1)-x0); out+=`<rect class="mark" x="${x0.toFixed(1)}" y="${y+9}" width="${w.toFixed(1)}" height="${laneH-18}" rx="3" fill="${st.chip}"><title>${esc((m.at?m.at+'  ':'')+(m.who?m.who+': ':'')+m.text)}</title></rect>`; }
+    out+=`<text x="${W-R+12}" y="${y+laneH/2+4.5}" font-size="12.5" font-family="ui-monospace,Menlo,Consolas,monospace" fill="${ms.length?ink:mute}">${ms.length||''}</text>`;
+  });
+  const yb=top+laneH*STRATS.length;
+  out+=`<line x1="${L}" x2="${W-R}" y1="${yb+0.5}" y2="${yb+0.5}" stroke="${mute}" stroke-opacity="0.5"/>`;
+  for(const c of clipsAt) out+=`<line x1="${x(c).toFixed(1)}" x2="${x(c).toFixed(1)}" y1="${top}" y2="${yb}" stroke="${mute}" stroke-dasharray="3 4"/>`;
+  if(timed){ const step = span>2400?600: span>1200?300: span>600?120: span>240?60:30; for(let t=0;t<=span+0.01;t+=step){ out+=`<line x1="${x(t).toFixed(1)}" x2="${x(t).toFixed(1)}" y1="${yb}" y2="${yb+4}" stroke="${mute}"/><text x="${x(t).toFixed(1)}" y="${yb+18}" font-size="10.5" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" fill="${mute}">${fmt(t)}</text>`; } }
+  else out+=`<text x="${L}" y="${yb+16}" font-size="10.5" fill="${mute}">in the order of the transcript (no timestamps yet)</text>`;
+  out+='</svg>'; return out;
+}
+
+function unb64u(str){ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const bin=atob(str); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
+async function inflate(bytes){ const ds=new DecompressionStream('deflate-raw'); const w=ds.writable.getWriter(); w.write(bytes); w.close(); return new Uint8Array(await new Response(ds.readable).arrayBuffer()); }
+function render(){
+  document.title=(state.title||'Shared transcript')+' · Asterine';
+  $('#title').textContent=state.title||'Shared transcript';
+  const timed=state.lines.filter(l=>l.t!=null);
+  $('#meta').textContent=`${state.lines.length} lines · ${timed.length?fmt(absT(timed[timed.length-1])):'–'} · shared from Asterine · read-only`;
+  let lines=''; let lastC=-1;
+  state.lines.forEach(l=>{ const c=l.c||0; if(state.clips.length>1 && c!==lastC){ lastC=c; lines+=`<div class="clipmark"><span>${esc(clipName(c))}</span><span class="n">starts ${fmt(clipOffset(c))}</span></div>`; }
+    lines+=`<div class="line"><span class="t">${fmt(absT(l))}</span><span class="who">${l.who?esc(l.who)+':':'·'}</span><span class="txt">${l.segs.map(sg=>`<span class="seg"${sg.code?` data-code="${sg.code}"`:''}>${esc(sg.text)}</span>`).join('')}</span></div>`; });
+  const counts=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const sg of l.segs) if(sg.code&&sg.text.trim()) counts[sg.code]++;
+  const box=document.createElement('div');
+  box.innerHTML=`<div class="sheet"><h2>Classroom Moments</h2>${lines||'<div class="empty">No lines.</div>'}</div>
+    <div class="sheet"><h2>Sightline</h2><div class="sightline" id="sightline"></div><div class="key">${STRATS.map(st=>`<span class="chip" style="background:${st.chip}">${st.name} ${counts[st.key]||'· not yet'}</span>`).join('')}</div></div>`;
+  $('#body').replaceChildren(box);
+  const sl=$('#sightline'); const cw=Math.max(340, Math.round(sl.clientWidth||0) || 900); sl.innerHTML=sightSVG({width:cw});
+}
+async function open(){
+  const m=(location.hash||'').match(/^#([zj])=([A-Za-z0-9\-_]+)$/);
+  if(!m){ $('#body').innerHTML='<div class="empty">This page shows a transcript shared from Asterine. Open it from a shared link.</div>'; return; }
+  try{ let bytes=unb64u(m[2]); if(m[1]==='z') bytes=await inflate(bytes); const p=JSON.parse(new TextDecoder().decode(bytes));
+    state={ title:p.title||'Shared transcript', clips:(p.clips||[]).map(c=>({dur:+c.dur||0, name:String(c.name||'')})), lines:(p.lines||[]).map(l=>({t:(l.t==null?null:+l.t), c:+l.c||0, who:l.w||'', segs:(l.s||[]).map(x=>({text:String(x[0]||''), code:BY[x[1]]?x[1]:null}))})) };
+    render();
+  }catch(e){ console.error(e); $('#body').innerHTML='<div class="empty">This link could not be opened. Ask whoever sent it to share it again.</div>'; }
+}
+let rsz=null; window.addEventListener('resize', ()=>{ clearTimeout(rsz); rsz=setTimeout(()=>{ if(state.lines.length) render(); }, 150); });
+window.addEventListener('hashchange', open);
+open();
+})();
+</script>
+</body>
+</html>
