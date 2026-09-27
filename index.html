@@ -7,6 +7,29 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 </head>
 <body>
+<!--
+  ASTERINE - DATA FLOW STATEMENT (for schools and districts)                    updated 2026-09-27
+
+  Asterine is a single web page that runs entirely in the user's browser. There is no server, no
+  database and no account system behind it, and it calls no AI API: no OpenAI, no Anthropic, no
+  transcription service.
+
+  1. Recordings. Video and audio are captured with the browser's MediaRecorder and kept in the
+     browser's own storage (IndexedDB) on that device. Nothing is uploaded. The Owner cannot see it.
+  2. Transcription. "Transcribe + speakers" runs Whisper (openai/whisper, ONNX build) and a speaker
+     segmentation model (pyannote, ONNX build) inside the browser with transformers.js. The audio is
+     decoded and processed on the device. The model files are downloaded once from public content
+     networks (jsdelivr.net, huggingface.co) and cached; no user data is sent to those networks.
+  3. Live draft (optional, off by default). While recording, the browser's built-in speech
+     recognition can show a rough running transcript. That feature streams audio to the browser
+     vendor's speech service (Google for Chrome and Edge, Apple for Safari) under that vendor's
+     terms. It is a switch under the record button; when off, no audio leaves the device.
+  4. Coding, tally, Sightline and every download (.docx, .html, .txt, .json, the recording) are
+     produced in the browser and saved to the user's own computer.
+  5. Fonts (fonts.googleapis.com) and one library (JSZip from cdnjs) load like any web page; they
+     receive no recording, transcript or personal data.
+  6. The beta access code is checked in the browser against a hash; nothing is transmitted.
+-->
 <title>Asterine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
@@ -230,15 +253,20 @@ h2.peach::before{background:var(--peach)}
       <ul>
         <li>You will keep the software's workflows, color-coding interface and designs confidential.</li>
         <li>You will not share this link, capture screenshots, or distribute the software to anyone not invited.</li>
-        <li>Any classroom recordings you make or load are authorized by your local school or district policies, and they stay on your own device.</li>
+        <li>Any classroom recordings you make or load are authorized by your local school or district policies. They stay on your own device: nothing is uploaded anywhere.</li>
       </ul>
+      <details><summary>Privacy &amp; Local Data Guarantee</summary>
+        <p><b>1. Zero cloud data storage.</b> This application runs entirely in your browser. All classroom video, audio recordings, transcripts and files stay on your device. There is no server behind it: <span class="owner"></span> ("the Owner") does not collect, stream, store or have any access to your recordings or student data.</p>
+        <p><b>2. Transcription on your device.</b> Words and speakers are produced by models that run inside your browser on your own computer. Your audio is not sent to any transcription service, is never stored elsewhere, is never sold, and is never used to train any model. The one exception is the optional live draft while recording, which is off unless you turn it on: it uses your browser's own speech recognition (Google's in Chrome and Edge, Apple's in Safari) under that company's terms.</p>
+        <p><b>3. Local authorization.</b> You are responsible for making sure that recording video or audio in your classroom follows your school district's media-consent and technology-use policies.</p>
+      </details>
       <details><summary>Private Beta Confidentiality Terms</summary>
         <p><b>1. Ownership.</b> <span class="owner"></span> ("the Owner") owns all rights, title and interest in this software, including its source code, user interface, features, designs and the color-coded transcription analysis methodology. You receive only a limited right to test the software.</p>
         <p><b>2. Confidentiality.</b> This software is in a private beta and contains proprietary workflows. You will not copy, reverse-engineer or replicate the software or its workflows; share, publish or leak screenshots, recordings or descriptions of the interface or process to any third party; or use the color-coding methodology to build a competing product or educational tool.</p>
         <p><b>3. Termination.</b> The Owner may end your access at any time, for any reason, without notice. Your confidentiality and ownership obligations survive the end of your access.</p>
       </details>
     </div>
-    <label class="agree"><input type="checkbox" id="gateAgree" required> <span>I agree to the Private Beta Confidentiality Terms.</span></label>
+    <label class="agree"><input type="checkbox" id="gateAgree" required> <span>I agree to the Privacy &amp; Local Data Guarantee and the Private Beta Confidentiality Terms.</span></label>
     <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter</button><span class="err" id="gateErr"></span></div>
     <p class="fine" id="gateLegal"></p>
   </form>
@@ -275,6 +303,7 @@ h2.peach::before{background:var(--peach)}
           <button type="button" class="btn" id="btnStop" disabled>■ Stop</button>
         </div>
         <div class="timer"><span id="clock">0:00</span><small id="clockLabel">ready</small></div>
+        <label class="note" style="display:flex;gap:6px;align-items:flex-start;margin-top:8px" id="liveRow"><input type="checkbox" id="liveDraft"> <span>Show a rough live draft while recording (sends the audio to your browser's speech service - Google in Chrome, Apple in Safari). Off: nothing leaves this device.</span></label>
         <div class="interim" id="interim"></div>
         <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. <a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
         <p class="note" id="speechNote"></p>
@@ -679,10 +708,11 @@ let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clock
 $('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechOK = !!SR;
-$('#speechNote').textContent = speechOK
-  ? 'Transcribes live as you record (via the browser\'s speech service).'
-  : 'No live transcription in this browser - Chrome, Edge or Safari have it. Recording still works.';
-if(!speechOK) $('#speechNote').classList.add('warn');
+$('#speechNote').textContent = speechOK ? 'After recording, use Transcribe + speakers: it runs on this computer.' : 'After recording, use Transcribe + speakers: it runs on this computer. (This browser has no live draft.)';
+if(!speechOK){ $('#liveDraft').disabled=true; }
+let liveOn=false; try{ liveOn = localStorage.getItem('cm-live-draft')==='1'; }catch(e){}
+$('#liveDraft').checked = liveOn && speechOK;
+$('#liveDraft').addEventListener('change', e=>{ liveOn=e.target.checked; try{ localStorage.setItem('cm-live-draft', liveOn?'1':'0'); }catch(x){} });
 const elapsed = () => (performance.now()-t0)/1000;
 
 const policyAllows=(()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; if(pp && pp.allowsFeature) return pp.allowsFeature('microphone') || pp.allowsFeature('camera'); }catch(e){} return null; })();
@@ -714,7 +744,7 @@ async function startRecording(){
   recording=true; t0=performance.now(); if(!state.createdAt) state.createdAt=Date.now(); state.mediaName=null; if(!clips.length) state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
   $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true; setLiveWho('T');
   clockTimer=setInterval(()=>{ $('#clock').textContent=fmt(elapsed()); }, 250);
-  renderTranscript(); startSpeech();
+  renderTranscript(); if(liveOn && speechOK) startSpeech(); else $('#interim').textContent='Recording. Transcribe on this computer when you stop.';
 }
 function stopRecording(){ if(!recording) return; recording=false; clearInterval(clockTimer); stopSpeech(); try{ rec.stop(); }catch(e){ onRecStopped(); } }
 function onRecStopped(){
@@ -722,7 +752,7 @@ function onRecStopped(){
   const blob = new Blob(chunks, {type: recType || 'video/webm'}); chunks=[];
   const dur = Math.max(0.5, elapsed());
   clips[recClip] = {blob, type: blob.type}; state.clips[recClip] = {dur, name:'Recording '+(recClip+1)};
-  $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent='';
+  $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent=''; if(!(liveOn && speechOK)) setTimeout(()=>{ $('#whisperBlock').scrollIntoView({block:'nearest'}); toast('Now click Transcribe + speakers', 2600); }, 400);
   loadClip(recClip); saveMedia(); renderTranscript(); scheduleSave(); toast((recClip?'Recording '+(recClip+1)+' added':'Recording saved in this browser')+'. Now code the transcript.', 2600);
 }
 function startSpeech(){
