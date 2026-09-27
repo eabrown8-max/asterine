@@ -44,9 +44,9 @@
   --accent:#1F5BB5; --accent-ink:#FFFFFF; --peach:#A84A6E;   /* sapphire and rose - Beth's jewel tones */
   --rec:#A8342A;
   --s-modeling:#C8412B; --s-scaffolding:#2F4B9E; --s-articulating:#9E6208; --s-exploring:#B8407A;
-  --s-coaching:#2E7D5B; --s-reflecting:#6B4FA0; --s-fading:#6B665C;
+  --s-coaching:#2E7D5B; --s-reflecting:#6B4FA0;
   --chip-modeling:#C8412B; --chip-scaffolding:#2F4B9E; --chip-articulating:#D98B1F; --chip-exploring:#B8407A;
-  --chip-coaching:#2E7D5B; --chip-reflecting:#6B4FA0; --chip-fading:#84807A;
+  --chip-coaching:#2E7D5B; --chip-reflecting:#6B4FA0;
   --sel:rgba(31,91,181,.16); --now:rgba(168,74,110,.12);
   --serif:"Fraunces",Georgia,"Times New Roman",serif;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
@@ -59,7 +59,7 @@
     --ink:#EDE8DF; --soft:#CDB9D2; --mute:#95839A;
     --accent:#6FA3F0; --accent-ink:#17140F; --peach:#E08AAB; --rec:#E0665A;
     --s-modeling:#E8705C; --s-scaffolding:#8FA6E8; --s-articulating:#E6A84A; --s-exploring:#E27BB2;
-    --s-coaching:#66C296; --s-reflecting:#B39BE0; --s-fading:#B5B0A6;
+    --s-coaching:#66C296; --s-reflecting:#B39BE0;
     --sel:rgba(111,163,240,.22); --now:rgba(224,138,171,.16);
     color-scheme:dark;
   }
@@ -69,7 +69,7 @@
   --ink:#EDE8DF; --soft:#CDB9D2; --mute:#95839A;
   --accent:#6FA3F0; --accent-ink:#17140F; --peach:#E08AAB; --rec:#E0665A;
   --s-modeling:#E8705C; --s-scaffolding:#8FA6E8; --s-articulating:#E6A84A; --s-exploring:#E27BB2;
-  --s-coaching:#66C296; --s-reflecting:#B39BE0; --s-fading:#B5B0A6;
+  --s-coaching:#66C296; --s-reflecting:#B39BE0;
   --sel:rgba(111,163,240,.22); --now:rgba(224,138,171,.16);
   color-scheme:dark;
 }
@@ -194,7 +194,6 @@ h2.peach::before{background:var(--peach)}
 .seg[data-code="exploring"]{color:var(--s-exploring)}
 .seg[data-code="coaching"]{color:var(--s-coaching)}
 .seg[data-code="reflecting"]{color:var(--s-reflecting)}
-.seg[data-code="fading"]{color:var(--s-fading)}
 .transcript ::selection{background:var(--sel)}
 .addrow{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
 .paste{margin-top:12px;background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:12px}
@@ -216,7 +215,6 @@ h2.peach::before{background:var(--peach)}
 .chip[data-code="exploring"]{background:var(--chip-exploring)}
 .chip[data-code="coaching"]{background:var(--chip-coaching)}
 .chip[data-code="reflecting"]{background:var(--chip-reflecting)}
-.chip[data-code="fading"]{background:var(--chip-fading)}
 .movedef{margin:10px 0 0;min-height:3.2em;font-size:13px;line-height:1.45;color:var(--soft);padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
 .movedef b{font-weight:600;margin-right:4px}
 .howto{font-size:12.5px;color:var(--soft);line-height:1.5;margin:10px 0 0;padding-left:0;list-style:none}
