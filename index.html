@@ -241,6 +241,8 @@ h2.peach::before{background:var(--peach)}
 .gate .codewrap input{width:100%;font-size:18px;padding:11px 74px 11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);letter-spacing:.08em}
 .gate .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:1px solid var(--line);background:var(--surface);color:var(--soft);border-radius:6px;padding:5px 9px;font-size:12.5px;font-weight:600}
 .gate .eye:hover{color:var(--accent)}
+.gate .nocode{margin:10px 0 0;font-size:13px;color:var(--soft);line-height:1.5}
+.gate .nocode a{color:var(--accent);text-decoration:none;border-bottom:1px solid currentColor}
 .gate .terms{margin-top:14px;font-size:13px;color:var(--soft);line-height:1.5}
 .gate .terms ul{margin:6px 0 0;padding-left:18px}
 .gate .terms li{margin-bottom:4px}
@@ -269,6 +271,7 @@ h2.peach::before{background:var(--peach)}
     <div class="names"><div><label class="code" for="gateFirst">First name</label><input type="text" id="gateFirst" autocomplete="given-name" autocapitalize="words" spellcheck="false"></div><div><label class="code" for="gateLast">Last name</label><input type="text" id="gateLast" autocomplete="family-name" autocapitalize="words" spellcheck="false"></div></div>
     <label class="code" for="gateCode">Access code</label>
     <div class="codewrap"><input type="password" id="gateCode" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false"><button type="button" class="eye" id="gateEye" aria-label="Show the code">Show</button></div>
+    <p class="nocode" id="gateNoCode">Don't have a code? <a href="https://forms.gle/HoWFyDa33VHLWf3BA" target="_blank" rel="noopener">Tell us about your school</a> and we'll be in touch about a pilot.</p>
     <div class="terms"><span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Local-First Privacy Guarantee</span>
       <ul>
         <li><b>100% on-device processing.</b> This application runs entirely within your web browser. Your classroom videos, audio recordings and generated transcripts are processed locally on your computer's hardware.</li>
