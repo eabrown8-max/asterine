@@ -5,6 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co https://docs.google.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://docs.google.com; frame-ancestors 'none'">
 </head>
 <body>
 <!--
@@ -427,7 +428,7 @@ h2.peach::before{background:var(--peach)}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
 <script>
 (() => {
 'use strict';
@@ -444,6 +445,8 @@ function agreement(){ try{ const a=JSON.parse(localStorage.getItem('cm-beta-agre
 function agreementLine(){ const a=agreement(); return a ? `Prepared by ${a.name} · beta terms accepted ${new Date(a.when).toLocaleDateString()}` : ''; }
 const AGREE_FORM={ url:'https://docs.google.com/forms/d/e/1FAIpQLSc6Xc6vZoFlfY3H7QEyHTKde0sYoYAx38pLPgqklMo3GjgN-Q/formResponse', first:'entry.258640741', last:'entry.2071736775', date:'entry.673108979' };   // Beth's Google Form: first name, last name, date - the only thing the page ever sends anywhere
 function recordAgreement(first, last){ try{ const d=new Date(); const fd=new FormData(); fd.append(AGREE_FORM.first, first); fd.append(AGREE_FORM.last, last); fd.append(AGREE_FORM.date+'_year', String(d.getFullYear())); fd.append(AGREE_FORM.date+'_month', String(d.getMonth()+1)); fd.append(AGREE_FORM.date+'_day', String(d.getDate())); fd.append('fvv','1'); fd.append('pageHistory','0'); fetch(AGREE_FORM.url, {method:'POST', mode:'no-cors', body:fd, keepalive:true}).catch(()=>{}); }catch(e){} }
+const LIB_URL='./vendor/transformers/transformers.min.js';   // the site build points this at ./vendor/transformers/transformers.min.js
+const WASM_PATHS=new URL('./vendor/transformers/', location.href).href;                                                         // and this at './vendor/transformers/'
 const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
 const TAGLINE='See the art in your teaching.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
@@ -917,8 +920,8 @@ async function decodeTo16k(blob){
 }
 async function lib(){
   if(wLib) return wLib;
-  wLib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
-  wLib.env.allowLocalModels=false; wLib.env.useBrowserCache=true; return wLib;
+  wLib=await import(LIB_URL);
+  wLib.env.allowLocalModels=false; wLib.env.useBrowserCache=true; if(WASM_PATHS){ try{ wLib.env.backends.onnx.wasm.wasmPaths=WASM_PATHS; }catch(e){} } return wLib;
 }
 function progressTo(label){ const files={}; return d=>{
   if(d.status==='progress' && d.file){ files[d.file]=[d.loaded||0, d.total||0]; let l=0,t=0; for(const k in files){ l+=files[k][0]; t+=files[k][1]; } wStatus('Downloading '+label+', once: '+Math.round(t?l/t*100:0)+'%', t?l/t:0); }
