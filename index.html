@@ -222,7 +222,10 @@ h2.peach::before{background:var(--peach)}
 .gate p{margin:0 0 12px;line-height:1.5}
 .gate .lede{color:var(--soft);font-size:14.5px}
 .gate label.code{display:block;font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:18px 0 6px}
-.gate input[type=password]{width:100%;font-size:18px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);letter-spacing:.08em}
+.gate .codewrap{position:relative}
+.gate .codewrap input{width:100%;font-size:18px;padding:11px 74px 11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);letter-spacing:.08em}
+.gate .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:1px solid var(--line);background:var(--surface);color:var(--soft);border-radius:6px;padding:5px 9px;font-size:12.5px;font-weight:600}
+.gate .eye:hover{color:var(--accent)}
 .gate .terms{margin-top:14px;font-size:13px;color:var(--soft);line-height:1.5}
 .gate .terms ul{margin:6px 0 0;padding-left:18px}
 .gate .terms li{margin-bottom:4px}
@@ -244,12 +247,12 @@ h2.peach::before{background:var(--peach)}
 </style>
 
 <div class="gate" id="gate" hidden>
-  <form class="card" id="gateForm" autocomplete="off">
+  <form class="card" id="gateForm" autocomplete="off" novalidate>
     <p class="eyebrow" id="gateBrand"></p>
     <h1 id="gateTitle"></h1>
     <p class="lede"><i>See the art in your teaching.</i> A secure, invite-only platform for instructional analysis.</p>
     <label class="code" for="gateCode">Access code</label>
-    <input type="password" id="gateCode" inputmode="text" autocapitalize="off" spellcheck="false" required>
+    <div class="codewrap"><input type="password" id="gateCode" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false"><button type="button" class="eye" id="gateEye" aria-label="Show the code">Show</button></div>
     <div class="terms"><span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Local-First Privacy Guarantee</span>
       <ul>
         <li><b>100% on-device processing.</b> This application runs entirely within your web browser. Your classroom videos, audio recordings and generated transcripts are processed locally on your computer's hardware.</li>
@@ -267,7 +270,7 @@ h2.peach::before{background:var(--peach)}
         <p><b>3. Termination.</b> The Owner may end your access at any time, for any reason, without notice. Your confidentiality and ownership obligations survive the end of your access.</p>
       </details>
     </div>
-    <label class="agree"><input type="checkbox" id="gateAgree" required> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms.</span></label>
+    <label class="agree"><input type="checkbox" id="gateAgree"> <span>I agree to the Private Beta Confidentiality &amp; Privacy Terms.</span></label>
     <div class="row"><button type="submit" class="btn primary" id="gateGo">Enter application</button><span class="err" id="gateErr"></span></div>
     <p class="fine" id="gateLegal"></p>
   </form>
@@ -488,9 +491,12 @@ const sample = () => ({
     return H.map(x=>x.toString(16).padStart(8,'0')).join('');
   }
   async function sha(t){ try{ if(crypto&&crypto.subtle){ const h=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join(''); } }catch(e){} return sha256js(t); }
+  $('#gateEye').addEventListener('click', ()=>{ const i=$('#gateCode'); const show=i.type==='password'; i.type=show?'text':'password'; $('#gateEye').textContent=show?'Hide':'Show'; $('#gateEye').setAttribute('aria-label', show?'Hide the code':'Show the code'); i.focus(); });
+  $('#gateGo').addEventListener('click', e=>{ e.preventDefault(); $('#gateForm').requestSubmit ? $('#gateForm').requestSubmit() : $('#gateForm').dispatchEvent(new Event('submit',{cancelable:true})); });
   $('#gateForm').addEventListener('submit', async e=>{
     e.preventDefault(); const code=$('#gateCode').value.trim().toLowerCase(); const err=$('#gateErr'); err.textContent='';
-    if(!$('#gateAgree').checked){ err.textContent='Tick the agreement to continue.'; return; }
+    if(!code){ err.textContent='Enter the access code you were given.'; $('#gateCode').focus(); return; }
+    if(!$('#gateAgree').checked){ err.textContent='Tick the agreement box to continue.'; $('#gateAgree').focus(); return; }
     let h=''; try{ h=await sha(code); }catch(x){ err.textContent='This browser could not check the code. Try again, or use a different browser.'; return; }
     if(h!==GATE_HASH){ err.textContent='That code is not right. Check with the person who invited you.'; $('#gateCode').select(); return; }
     try{ localStorage.setItem('cm-beta-ok','1'); }catch(x){}
