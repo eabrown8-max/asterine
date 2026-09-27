@@ -301,7 +301,7 @@ h2.peach::before{background:var(--peach)}
         <h2>Record</h2>
         <div class="stage audio-only" id="stage">
           <video id="video" playsinline></video>
-          <div class="audio-mark"><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="audioLabel">audio</span></div>
+          <div class="audio-mark"><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="audioLabel">camera preview appears here when you start</span></div>
           <div class="badge">REC</div>
         </div>
         <div class="controls">
@@ -770,13 +770,15 @@ $('#btnPasteUse').addEventListener('click', async ()=>{
   state.sample=false; $('#pasteBox').value=''; $('#paste').hidden=true; changed(); toast(lines.length+' lines ready to code');
 });
 $('#btnNew').addEventListener('click', async ()=>{ if(recording){ toast('Stop the recording first', 1800); return; } if(state.lines.length && !state.sample && !await ask('Start a new session? The current transcript and recording are cleared from this browser. Download the project first if you want to keep it.', 'New session')) return; resetAll(); toast('New session'); });
-function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
+function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; setTimeout(idleLabel, 0); state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
 
 /* ---------------- recording ---------------- */
 let liveWho='T';
 function setLiveWho(w){ liveWho=w; }
 let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null, recClip=0, recType='';
-$('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); });
+function idleLabel(){ if(recording || clips.length) return; $('#audioLabel').textContent = mode==='video' ? 'camera preview appears here when you start' : 'sound meter - audio only, no camera'; }
+$('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); idleLabel(); });
+idleLabel();
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechOK = !!SR;
 $('#speechNote').textContent = speechOK ? 'After recording, use Transcribe + speakers: it runs on this computer.' : 'After recording, use Transcribe + speakers: it runs on this computer. (This browser has no live draft.)';
@@ -802,7 +804,7 @@ async function startRecording(){
   }
   stopPlaybackMedia();
   const v=$('#video'); v.srcObject=stream; v.muted=true; v.controls=false; v.play().catch(()=>{});
-  $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='recording audio';
+  $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='recording audio - no camera';
   meter(stream);
   const cands = mode==='video' ? ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'] : ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
   recType = cands.find(c=>window.MediaRecorder && MediaRecorder.isTypeSupported(c)) || '';
