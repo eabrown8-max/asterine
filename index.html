@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- (c) 2026 Dr. Elizabeth Brown and Dr. Diana Hawley. All rights reserved. Incandescence(TM) and its associated color-coded instructional analysis workflows are trademarks of Dr. Elizabeth Brown and Dr. Diana Hawley. Private beta. -->
+<!-- (c) 2026 Dr. Elizabeth Brown and Dr. Diana Hawley. All rights reserved. Asterine(TM) and its associated color-coded instructional analysis workflows are trademarks of Dr. Elizabeth Brown and Dr. Diana Hawley. Private beta. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 </head>
 <body>
-<title>Incandescence</title>
+<title>Asterine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>
@@ -59,6 +59,7 @@ button:focus-visible,[tabindex]:focus-visible,.txt:focus-visible{outline:2px sol
 .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--peach);margin:0 0 8px}
 h1{font:500 30px/1.05 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
 h1 em{font-style:italic;font-weight:400}
+.tagline{margin:6px 0 0;font:italic 15px/1.3 var(--serif);color:var(--soft)}
 h1 sup{font-size:.4em;font-weight:500;vertical-align:top;margin-left:2px;color:var(--soft)}
 .legal{margin-top:34px;padding-top:12px;border-top:1px solid var(--line);font:11.5px/1.55 var(--mono);color:var(--mute)}
 .head .meta{font:12px/1.4 var(--mono);color:var(--soft);font-variant-numeric:tabular-nums}
@@ -222,7 +223,7 @@ h2.peach::before{background:var(--peach)}
   <form class="card" id="gateForm" autocomplete="off">
     <p class="eyebrow" id="gateBrand"></p>
     <h1 id="gateTitle"></h1>
-    <p class="lede">An invite-only tool for instructional analysis rooted in Cognitive Apprenticeship. Enter the access code you were given.</p>
+    <p class="lede"><i>See the art in your teaching.</i> An invite-only tool for instructional analysis rooted in Cognitive Apprenticeship. Enter the access code you were given.</p>
     <label class="code" for="gateCode">Access code</label>
     <input type="password" id="gateCode" inputmode="text" autocapitalize="off" spellcheck="false" required>
     <div class="terms">By entering your access code you agree that:
@@ -246,7 +247,8 @@ h2.peach::before{background:var(--peach)}
   <header class="head">
     <div>
       <p class="eyebrow" id="brandLine">Art of Teaching Studio</p>
-      <h1 id="appName">Incandescence</h1>
+      <h1 id="appName">Asterine</h1>
+      <p class="tagline" id="tagline">See the art in your teaching.</p>
     </div>
     <div class="meta" id="meta">no recording yet</div>
   </header>
@@ -386,14 +388,14 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* ---- names: change these two and every title, header, download and file name follows ---- */
 const BRAND='Art of Teaching Studio';
-const APP='Incandescence';
+const APP='Asterine';
 const OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
 const YEAR='2026';
 const STAGE='Private Beta';
 const COPYRIGHT=`\u00a9 ${YEAR} ${OWNER}. All rights reserved. ${APP}\u2122 and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
 const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
-const TAGLINE='Cognitive Apprenticeship strategies, coded from real classroom moments.';
-document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT;
+const TAGLINE='See the art in your teaching.';
+document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
 const STRATS = [   // Teaching Moves, in Beth's order and words (2026-09-26); Fading is in the deck only
   {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
   {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
