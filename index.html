@@ -105,13 +105,17 @@ h2.peach::before{background:var(--peach)}
 .block{margin-bottom:22px}
 
 /* media */
-.stage{position:relative;background:#0f0d0a;border-radius:8px;overflow:hidden;aspect-ratio:16/9;max-width:100%;border:1px solid var(--line)}
+.stage{position:relative;background:#0f0d0a;border-radius:10px;overflow:hidden;aspect-ratio:16/9;max-width:100%;border:1px solid var(--line)}
 .stage video{width:100%;height:100%;display:block;object-fit:contain;background:#0f0d0a}
+.stage.audio-only{background:var(--surface);border:1px dashed var(--line)}
 .stage.audio-only video{opacity:0}
-.stage .audio-mark{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#EDE8DF;font:500 13px var(--mono);letter-spacing:.06em}
+.stage .audio-mark{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--soft);font:13px/1.4 var(--sans);text-align:center;padding:0 18px}
 .stage.audio-only .audio-mark{display:flex}
-.audio-mark .bars{display:flex;gap:4px;align-items:flex-end;height:28px}
-.audio-mark .bars i{width:5px;background:var(--peach);border-radius:2px;height:8px;transition:height .12s}
+.audio-mark .glyph{color:var(--accent);opacity:.9}
+.audio-mark .bars{display:none;gap:4px;align-items:flex-end;height:22px}
+.stage.recording .audio-mark .bars{display:flex}
+.stage.recording .audio-mark .glyph{display:none}
+.audio-mark .bars i{width:4px;background:var(--accent);border-radius:2px;height:6px;transition:height .12s}
 .stage .badge{position:absolute;top:8px;left:8px;background:rgba(15,13,10,.7);color:#EDE8DF;font:600 11px/1 var(--mono);padding:6px 8px;border-radius:4px;letter-spacing:.08em;display:none;align-items:center;gap:6px}
 .stage.recording .badge{display:flex}
 .stage .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rec);animation:blink 1.1s infinite}
@@ -301,7 +305,7 @@ h2.peach::before{background:var(--peach)}
         <h2>Record</h2>
         <div class="stage audio-only" id="stage">
           <video id="video" playsinline></video>
-          <div class="audio-mark"><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="audioLabel">camera preview appears here when you start</span></div>
+          <div class="audio-mark"><span class="glyph" id="glyph"></span><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="audioLabel">Camera preview appears here when you start</span></div>
           <div class="badge">REC</div>
         </div>
         <div class="controls">
@@ -776,7 +780,8 @@ function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; setTimeout(idleLabel
 let liveWho='T';
 function setLiveWho(w){ liveWho=w; }
 let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null, recClip=0, recType='';
-function idleLabel(){ if(recording || clips.length) return; $('#audioLabel').textContent = mode==='video' ? 'camera preview appears here when you start' : 'sound meter - audio only, no camera'; }
+const GLYPH={ cam:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>', mic:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>' };
+function idleLabel(){ if(recording || clips.length) return; $('#glyph').innerHTML = mode==='video' ? GLYPH.cam : GLYPH.mic; $('#audioLabel').textContent = mode==='video' ? 'Camera preview appears here when you start' : 'Audio only - no camera'; }
 $('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); idleLabel(); });
 idleLabel();
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -804,7 +809,7 @@ async function startRecording(){
   }
   stopPlaybackMedia();
   const v=$('#video'); v.srcObject=stream; v.muted=true; v.controls=false; v.play().catch(()=>{});
-  $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='recording audio - no camera';
+  $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='Recording audio';
   meter(stream);
   const cands = mode==='video' ? ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'] : ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
   recType = cands.find(c=>window.MediaRecorder && MediaRecorder.isTypeSupported(c)) || '';
@@ -870,7 +875,7 @@ function loadClip(i, after){
   stopPlaybackMedia(); cur=i; afterLoad=after||null;
   v.srcObject=null; v.muted=false; v.controls=true; v.src=URL.createObjectURL(clip.blob);
   const isVideo = (clip.type||clip.blob.type||'').startsWith('video');
-  $('#stage').classList.toggle('audio-only', !isVideo); $('#audioLabel').textContent='audio recording';
+  $('#stage').classList.toggle('audio-only', !isVideo); $('#glyph').innerHTML=GLYPH.mic; $('#audioLabel').textContent='Audio recording';
   $('#playBlock').hidden=false; $('#dlMedia').disabled=false; $('#dlMedia').textContent=clipName(i)+' (.' + ext(clip.blob.type) + ')';
   $('#whisperBlock').hidden = framed; $('#clipnav').hidden = clips.length<2; $('#clipLabel').textContent = clipName(i)+' of '+clips.length; $('#clipPrev').disabled = i<=0; $('#clipNext').disabled = i>=clips.length-1;
   v.onloadedmetadata=()=>{
