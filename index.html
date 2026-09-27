@@ -70,6 +70,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}   /* the site has no viewer reset; without this, display:flex on .gate/.veil/.banner/.clipnav beats the hidden attribute */
 html,body{height:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
