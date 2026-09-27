@@ -120,7 +120,7 @@ h2.peach::before{background:var(--peach)}
 .sight i{display:block;height:100%;min-width:1px}
 .tally{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:13.5px}
 .tally .sw{width:10px;height:10px;border-radius:2px}
-.tally .n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right;min-width:2ch}
+.tally .n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right;min-width:2ch;white-space:nowrap}
 .tally .lab{font-weight:600}
 .tally .total{grid-column:1/-1;border-top:1px solid var(--line);margin-top:4px;padding-top:6px;display:flex;justify-content:space-between;color:var(--soft);font-size:12.5px}
 
@@ -394,14 +394,14 @@ const COPYRIGHT=`\u00a9 ${YEAR} ${OWNER}. All rights reserved. ${APP}\u2122 and 
 const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
 const TAGLINE='Cognitive Apprenticeship strategies, coded from real classroom moments.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT;
-const STRATS = [
+const STRATS = [   // Teaching Moves, in Beth's order and words (2026-09-26); Fading is in the deck only
   {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
-  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
-  {key:'articulating', name:'Articulating', chip:'#D98B1F', text:'#9E6208'},
-  {key:'exploring',    name:'Exploring',    chip:'#B8407A', text:'#B8407A'},
   {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
-  {key:'reflecting',   name:'Reflecting',   chip:'#6B4FA0', text:'#6B4FA0'},
-];   // Fading is in the deck but not in the app (Beth, 2026-09-26)
+  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
+  {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208'},
+  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
+  {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A'},
+];
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
 const WHO = ['T','S','Ss',''];
 
@@ -517,7 +517,7 @@ function renderTally(){
   for(const l of state.lines) for(const s of l.segs) if(s.code && s.text.trim()){ counts[s.code]++; total++; }
   const t=$('#tally'); t.innerHTML='';
   for(const s of STRATS){
-    t.insertAdjacentHTML('beforeend', `<span class="sw" style="background:${s.chip}"></span><span class="lab" style="color:var(--s-${s.key})">${s.name}</span><span class="n">${counts[s.key]}</span>`);
+    t.insertAdjacentHTML('beforeend', `<span class="sw" style="background:${s.chip}"></span><span class="lab" style="color:var(--s-${s.key})">${s.name}</span><span class="n"${counts[s.key]?'':' style="color:var(--mute);font-style:italic"'}>${counts[s.key]||'not yet'}</span>`);
   }
   t.insertAdjacentHTML('beforeend', `<div class="total"><span>moves marked</span><span>${total}</span></div>`);
   const sg=$('#sight'); sg.innerHTML=''; const all=state.lines.flatMap(l=>l.segs); const chars=all.reduce((a,x)=>a+x.text.length,0)||1;
@@ -910,11 +910,11 @@ function exportHtml(){
 <style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
 <p class="eyebrow">${esc(BRAND)} · ${esc(APP)}</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
 <div class="grid"><div class="card">${lines||'<p>No lines.</p>'}</div>
-<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}</p></div></body></html>`;
+<aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}</p></div></body></html>`;
 }
 function exportTxt(){
   const rows=tallyRows();
-  const head=[(state.title||'Transcript'), APP+'\u2122 - '+BRAND, TAGLINE, 'Coded '+new Date().toLocaleString(), COPYRIGHT, '', 'SIGHTLINE', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n}`), '', 'CLASSROOM MOMENTS  (Teaching Moves are wrapped like {Modeling: ...})', ''];
+  const head=[(state.title||'Transcript'), APP+'\u2122 - '+BRAND, TAGLINE, 'Coded '+new Date().toLocaleString(), COPYRIGHT, '', 'SIGHTLINE', ...rows.map(([s,n])=>`  ${s.name.padEnd(13)} ${n||'not yet'}`), '', 'CLASSROOM MOMENTS  (Teaching Moves are wrapped like {Modeling: ...})', ''];
   const body=exportRows().map(r=>r.mark ? `\n-- ${r.mark} --` : (l=>`${fmt(absT(l)).padStart(5)}  ${(l.who?l.who+':':'').padEnd(3)} ` + l.segs.map(s=>s.code?`{${BY[s.code].name}: ${s.text}}`:s.text).join(''))(r.l));
   return head.concat(body).join('\n')+'\n';
 }
@@ -929,7 +929,7 @@ async function exportDocx(){
   body+=para(run(state.title||'Coded transcript',{font:'Georgia',sz:44,b:false}),{after:80});
   body+=para(run(`${state.lines.length} lines · coded ${new Date().toLocaleDateString()}`,{color:'6B665C',sz:18}),{after:240});
   body+=para(run('SIGHTLINE',{color:'6B665C',b:true,sz:18}),{after:60});
-  for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n}`,{color:'23211D'}),{after:20});
+  for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n||'not yet'}`,{color:n?'23211D':'8A867E',i:!n}),{after:20});
   body+=para(run(`moves marked   ${rows.reduce((a,[,n])=>a+n,0)}`,{color:'6B665C',sz:18}),{after:240,before:60});
   body+=para(run('CLASSROOM MOMENTS',{color:'6B665C',b:true,sz:18}),{after:80});
   for(const row of exportRows()){
@@ -959,7 +959,7 @@ async function exportDocx(){
 function richHtml(){
   const rows=tallyRows();
   const lines=exportRows().map(r=>r.mark?`<p style="margin:12px 0 4px;font-family:Calibri,Arial,sans-serif;font-size:8pt;letter-spacing:.1em;color:#B9784A"><b>${esc(r.mark.toUpperCase())}</b></p>`:(l=>`<p style="margin:0 0 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt"><span style="color:#8A867E;font-family:Menlo,Consolas,monospace;font-size:9pt">${fmt(absT(l))}</span>&nbsp;&nbsp;${l.who?`<b style="color:#6B665C">${esc(l.who)}:</b> `:''}${l.segs.map(sg=>sg.code?`<b style="color:${BY[sg.code].text}">${esc(sg.text)}</b>`:esc(sg.text)).join('')}</p>`)(r.l)).join('');
-  const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n}`).join(' &nbsp;·&nbsp; ');
+  const tally=rows.map(([st,n])=>`<b style="color:${st.text}">${st.name}</b> ${n||'<i>not yet</i>'}`).join(' &nbsp;·&nbsp; ');
   return `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#23211D"><p style="font-size:8pt;letter-spacing:.1em;color:#B9784A;margin:0 0 2px"><b>${esc((BRAND+' · '+APP).toUpperCase())}</b></p><p style="font-family:Georgia,serif;font-size:16pt;margin:0 0 4px">${esc(state.title||'Coded transcript')}</p><p style="font-size:9pt;color:#6B665C;margin:0 0 10px">${tally}</p>${lines}<p style="font-size:8pt;color:#8A867E;margin-top:10px">${esc(APP)}\u2122 · ${esc(BRAND)}<br>${esc(COPYRIGHT)}</p></div>`;
 }
 function richText(){ return exportTxt(); }
