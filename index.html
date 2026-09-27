@@ -461,13 +461,13 @@ const TAGLINE='See the art in your teaching.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
 (function(){ const a=agreement(); $('#whoIn').textContent = a ? `Signed in as ${a.name} (beta terms accepted ${new Date(a.when).toLocaleDateString()}).` : ''; })();
 $('#signOut').addEventListener('click', e=>{ e.preventDefault(); try{ localStorage.removeItem('cm-beta-ok'); localStorage.removeItem('cm-beta-agreement'); }catch(x){} location.reload(); });
-const STRATS = [   // Teaching Moves, in Beth's order and words (2026-09-26); definitions from the AEI deck; Fading is in the deck only
+const STRATS = [   // Teaching Moves in the AEI deck's order (Beth, 2026-09-27); noun forms from the brand block; definitions from the deck; Fading is in the deck only
   {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B', def:'Teacher artfully demonstrates artistic materials and processes.'},
-  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B', def:'Teacher provides customized feedback during learning.'},
   {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E', def:'Teacher provides supports in student learning.'},
   {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208', def:'Students communicate their understanding.'},
-  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0', def:'Students examine their process and product.'},
   {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A', def:'Students use artistic materials in new ways.'},
+  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B', def:'Teacher provides customized feedback during learning.'},
+  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0', def:'Students examine their process and product.'},
 ];
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
 const WHO = ['T','S','Ss',''];
