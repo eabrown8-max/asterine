@@ -413,6 +413,7 @@ h2.peach::before{background:var(--peach)}
     </aside>
   </div>
 <p class="legal" id="legal"></p>
+<p class="legal" style="margin-top:8px;border:0;padding:0"><span id="whoIn"></span> <a href="#" id="signOut" style="color:var(--accent);font-weight:600;text-decoration:none">Sign out of the beta</a></p>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -435,6 +436,8 @@ function agreementLine(){ const a=agreement(); return a ? `Prepared by ${a.name}
 const GATE_HASH='9781db7c5599501293b0ba26709cc9c7251b008effa44c6a73257bee56a63d1e';   // sha-256 of the access code
 const TAGLINE='See the art in your teaching.';
 document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE; $('#appName').innerHTML=esc(APP)+'<sup>\u2122</sup>'; $('#legal').textContent=COPYRIGHT; $('#tagline').textContent=TAGLINE;
+(function(){ const a=agreement(); $('#whoIn').textContent = a ? `Signed in as ${a.name} (beta terms accepted ${new Date(a.when).toLocaleDateString()}).` : ''; })();
+$('#signOut').addEventListener('click', e=>{ e.preventDefault(); try{ localStorage.removeItem('cm-beta-ok'); localStorage.removeItem('cm-beta-agreement'); }catch(x){} location.reload(); });
 const STRATS = [   // Teaching Moves, in Beth's order and words (2026-09-26); Fading is in the deck only
   {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
   {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
@@ -508,7 +511,7 @@ const sample = () => ({
     let h=''; try{ h=await sha(code); }catch(x){ err.textContent='This browser could not check the code. Try again, or use a different browser.'; return; }
     if(h!==GATE_HASH){ err.textContent='That code is not right. Check with the person who invited you.'; $('#gateCode').select(); return; }
     try{ localStorage.setItem('cm-beta-ok','1'); localStorage.setItem('cm-beta-agreement', JSON.stringify({name, when:new Date().toISOString(), app:APP, terms:'Private Beta Confidentiality & Privacy Terms'})); }catch(x){}
-    g.hidden=true; $('#app').hidden=false;
+    g.hidden=true; $('#app').hidden=false; $('#whoIn').textContent=`Signed in as ${name} (beta terms accepted ${new Date().toLocaleDateString()}).`;
   });
 })();
 
