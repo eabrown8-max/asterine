@@ -144,13 +144,13 @@ h2.peach::before{background:var(--peach)}
 .filerow input{display:none}
 
 /* tally */
-.sight{display:flex;height:10px;border-radius:3px;overflow:hidden;background:var(--line);margin-bottom:12px}
-.sight i{display:block;height:100%;min-width:1px}
-.tally{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:13.5px}
-.tally .sw{width:10px;height:10px;border-radius:2px}
-.tally .n{font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right;min-width:2ch;white-space:nowrap}
-.tally .lab{font-weight:600}
-.tally .total{grid-column:1/-1;border-top:1px solid var(--line);margin-top:4px;padding-top:6px;display:flex;justify-content:space-between;color:var(--soft);font-size:12.5px}
+.sightsheet{margin-top:20px;min-height:0}
+.sightline{width:100%}
+.sightline svg{display:block;width:100%;height:auto}
+.sightline svg .lane-alt{fill:var(--ink);opacity:.04}
+.sightline svg .mark:hover{opacity:.8}
+.tally{display:flex;justify-content:flex-end;gap:8px;font-size:12.5px;color:var(--soft);margin-top:8px}
+.tally .total{display:flex;gap:8px;font-family:var(--mono)}
 
 /* transcript */
 .sheet{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px 22px;min-height:420px}
@@ -354,11 +354,6 @@ h2.peach::before{background:var(--peach)}
         <p class="note">An .srt made on your own computer loads with its timestamps.</p>
       </section>
 
-      <section class="block">
-        <h2>Sightline</h2>
-        <div class="sight" id="sight" title="The lesson in order, colored by Teaching Move"></div>
-        <div class="tally" id="tally"></div>
-      </section>
     </aside>
 
     <!-- ================= CENTER: transcript ================= -->
@@ -390,6 +385,12 @@ h2.peach::before{background:var(--peach)}
         </div>
       </div>
       <p class="foot">Click a line or drag over words to color them. Double-click to edit. Click the speaker to change it, the time to play from there. Saves in this browser as you go.</p>
+      <div class="sheet sightsheet">
+        <h2>Sightline</h2>
+        <p class="note" style="margin:0 0 12px">The lesson, left to right. One lane per Teaching Move; each mark is a coded moment where it happened. Hover a mark to read it.</p>
+        <div class="sightline" id="sightline"></div>
+        <div class="tally" id="tally"></div>
+      </div>
     </main>
 
     <!-- ================= RIGHT: key ================= -->
@@ -586,16 +587,59 @@ function renderKey(){
   updateKey();
 }
 function updateKey(){ document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on', b.dataset.code===active)); }
+function sightModel(){
+  const lines=state.lines; const n=lines.length;
+  const timed = state.clips.length>0 && lines.some(l=>l.t!=null);
+  let span;
+  if(timed){ const dur=clipOffset(state.clips.length); const last=Math.max(0,...lines.map(l=>absT(l)||0)); span=Math.max(dur, last+5, 10); }
+  else span=Math.max(n,1);
+  const marks=[];
+  lines.forEach((l,i)=>{
+    let s0,e0;
+    if(timed && l.t!=null){ s0=absT(l); const nxt=lines.slice(i+1).find(x=>x.t!=null); e0 = nxt ? Math.min(absT(nxt), s0+30) : Math.min(span, s0+6); if(e0<=s0) e0=s0+2; }
+    else if(timed){ return; }            // an untimed line in a timed session has no place on the axis
+    else { s0=i; e0=i+1; }
+    const len=lineText(l).length||1; let pos=0;
+    for(const sg of l.segs){ const a=pos, b=pos+sg.text.length; pos=b; if(!sg.code||!sg.text.trim()) continue; marks.push({code:sg.code, x0:s0+(e0-s0)*a/len, x1:s0+(e0-s0)*b/len, text:sg.text, who:l.who, at:timed?fmt(absT(l)):''}); }
+  });
+  const clipsAt = timed ? state.clips.slice(1).map((_,k)=>clipOffset(k+1)) : [];
+  return {marks, span, timed, clipsAt};
+}
+function sightSVG(opts={}){
+  const {marks, span, timed, clipsAt}=sightModel();
+  const ex=!!opts.export; const W=opts.width||1000; const narrow=W<640; const L=narrow?92:124, R=narrow?40:52, laneH=narrow?32:36, top=8, bottom=timed?30:22; const H=top+laneH*STRATS.length+bottom; const fs=narrow?12:13;
+  const x=v=> L + (v/span)*(W-L-R);
+  const ink = ex ? '#23211D' : 'var(--ink)', mute = ex ? '#9E8AA3' : 'var(--mute)', label = st => ex ? st.text : `var(--s-${st.key})`;
+  let out=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"${ex?` width="${W}" height="${H}"`:''} role="img" aria-label="Sightline: Teaching Moves across the lesson" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">`;
+  if(ex) out+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#FDFCF9"/>`;
+  STRATS.forEach((st,i)=>{
+    const y=top+i*laneH; const ms=marks.filter(m=>m.code===st.key);
+    if(i%2) out+=`<rect class="lane-alt" x="${L}" y="${y}" width="${W-L-R}" height="${laneH}" fill="${ex?'#000':ink}" opacity="0.04"/>`;
+    out+=`<text x="${L-12}" y="${y+laneH/2+4.5}" text-anchor="end" font-size="${fs}" font-weight="600" fill="${label(st)}">${st.name}</text>`;
+    if(!ms.length) out+=`<text x="${L+10}" y="${y+laneH/2+4}" font-size="11.5" font-style="italic" fill="${mute}">not yet</text>`;
+    for(const m of ms){ const x0=x(m.x0), w=Math.max(5, x(m.x1)-x0); out+=`<rect class="mark" x="${x0.toFixed(1)}" y="${y+9}" width="${w.toFixed(1)}" height="${laneH-18}" rx="3" fill="${st.chip}"><title>${esc((m.at?m.at+'  ':'')+(m.who?m.who+': ':'')+m.text)}</title></rect>`; }
+    out+=`<text x="${W-R+12}" y="${y+laneH/2+4.5}" font-size="12.5" font-family="ui-monospace,Menlo,Consolas,monospace" fill="${ms.length?ink:mute}">${ms.length||''}</text>`;
+  });
+  const yb=top+laneH*STRATS.length;
+  out+=`<line x1="${L}" x2="${W-R}" y1="${yb+0.5}" y2="${yb+0.5}" stroke="${mute}" stroke-opacity="0.5"/>`;
+  for(const c of clipsAt) out+=`<line x1="${x(c).toFixed(1)}" x2="${x(c).toFixed(1)}" y1="${top}" y2="${yb}" stroke="${mute}" stroke-dasharray="3 4"/>`;
+  if(timed){ const step = span>2400?600: span>1200?300: span>600?120: span>240?60:30; for(let t=0;t<=span+0.01;t+=step){ out+=`<line x1="${x(t).toFixed(1)}" x2="${x(t).toFixed(1)}" y1="${yb}" y2="${yb+4}" stroke="${mute}"/><text x="${x(t).toFixed(1)}" y="${yb+18}" font-size="10.5" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" fill="${mute}">${fmt(t)}</text>`; } }
+  else out+=`<text x="${L}" y="${yb+16}" font-size="10.5" fill="${mute}">in the order of the transcript (no timestamps yet)</text>`;
+  out+='</svg>'; return out;
+}
+async function sightPNG(width){
+  const W=width||1600; const svg=sightSVG({export:true, width:W});
+  const hm=svg.match(/height="(\d+(?:\.\d+)?)"/); const H=hm?+hm[1]:400;
+  const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+  const img=new Image(); await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
+  const c=document.createElement('canvas'); c.width=W*2; c.height=H*2; const ctx=c.getContext('2d'); ctx.fillStyle='#FDFCF9'; ctx.fillRect(0,0,W*2,H*2); ctx.drawImage(img,0,0,W*2,H*2); URL.revokeObjectURL(url);
+  return {blob: await new Promise(r=>c.toBlob(r,'image/png')), W, H};
+}
 function renderTally(){
   const counts=Object.fromEntries(STRATS.map(s=>[s.key,0])); let total=0;
   for(const l of state.lines) for(const s of l.segs) if(s.code && s.text.trim()){ counts[s.code]++; total++; }
-  const t=$('#tally'); t.innerHTML='';
-  for(const s of STRATS){
-    t.insertAdjacentHTML('beforeend', `<span class="sw" style="background:${s.chip}"></span><span class="lab" style="color:var(--s-${s.key})">${s.name}</span><span class="n"${counts[s.key]?'':' style="color:var(--mute);font-style:italic"'}>${counts[s.key]||'not yet'}</span>`);
-  }
-  t.insertAdjacentHTML('beforeend', `<div class="total"><span>moves marked</span><span>${total}</span></div>`);
-  const sg=$('#sight'); sg.innerHTML=''; const all=state.lines.flatMap(l=>l.segs); const chars=all.reduce((a,x)=>a+x.text.length,0)||1;
-  for(const x of all){ if(!x.text.trim()) continue; const i=document.createElement('i'); i.style.flex=(x.text.length/chars*1000)+' 0 0'; i.style.background=x.code?`var(--s-${x.code})`:'transparent'; sg.appendChild(i); }
+  const box=$('#sightline'); const cw=Math.max(340, Math.round(box.clientWidth||0) || 1000); box.innerHTML = sightSVG({width:cw});
+  $('#tally').innerHTML = `<div class="total"><span>moves marked</span><span>${total}</span></div>`;
 }
 function renderLine(i){
   const l=state.lines[i];
@@ -984,7 +1028,8 @@ function exportHtml(){
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>body{margin:0;background:#F7F4ED;color:#23211D;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:36px 24px 60px}.eyebrow{font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#B9784A;margin:0 0 8px}h1{font:500 30px/1.1 Fraunces,Georgia,serif;margin:0 0 6px}.meta{font:12px ui-monospace,Menlo,monospace;color:#6B665C;margin-bottom:26px}.grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px}@media(max-width:720px){.grid{grid-template-columns:1fr}}.card{background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:20px 22px}.line{display:grid;grid-template-columns:5ch 3.4ch 1fr;gap:0 8px;padding:5px 0}.t{font:12px/1.8 ui-monospace,Menlo,monospace;color:#8A867E}.who{font-weight:600;color:#6B665C}h2{font:600 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6B665C;margin:0 0 10px}.chip{display:block;border-radius:6px;padding:8px 12px;color:#fff;font-weight:600;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}.tally{margin-top:18px;font-size:13px}.tally div{display:flex;justify-content:space-between;padding:2px 0}.tally b{font-weight:600}</style></head><body><div class="wrap">
 <p class="eyebrow">${esc(BRAND)} · ${esc(APP)}</p><h1>${esc(state.title||'Coded transcript')}</h1><div class="meta">${state.lines.length} lines · ${fmt(clipOffset(state.clips.length))} · coded ${new Date().toLocaleDateString()}</div>
-<div class="grid"><div class="card">${lines||'<p>No lines.</p>'}</div>
+<div class="grid" style="grid-template-columns:minmax(0,1fr) 210px"><div class="card">${lines||'<p>No lines.</p>'}</div>
+<div style="grid-column:1/-1;background:#FDFCF9;border:1px solid #D9D4C8;border-radius:10px;padding:16px 18px"><h2>Sightline</h2>${sightSVG({export:true, width:940}).replace(/ width="940" height="\d+(?:\.\d+)?"/,' style="width:100%;height:auto"')}</div>
 <aside><h2>Teaching Moves</h2>${rows.map(([s,n])=>`<span class="chip" style="background:${s.chip}"><span>${s.name}</span><span>${n||'not yet'}</span></span>`).join('')}<div class="tally"><div><span>moves marked</span><b>${rows.reduce((a,[,n])=>a+n,0)}</b></div></div></aside></div><p style="margin-top:28px;font:11px ui-monospace,Menlo,monospace;color:#8A867E">${esc(APP)}\u2122 · ${esc(BRAND)} · ${esc(TAGLINE)}<br>${esc(COPYRIGHT)}${agreementLine()?'<br>'+esc(agreementLine()):''}</p></div></body></html>`;
 }
 function exportTxt(){
@@ -995,6 +1040,7 @@ function exportTxt(){
 }
 async function exportDocx(){
   if(!window.JSZip) throw new Error('The Word builder did not load');
+  let pic=null; try{ pic=await sightPNG(1000); }catch(e){ console.warn('no sightline picture', e); }
   const X=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const run=(t,{color,b,sz,font,i}={})=>`<w:r><w:rPr>${font?`<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}"/>`:''}${b?'<w:b/>':''}${i?'<w:i/>':''}${color?`<w:color w:val="${color}"/>`:''}${sz?`<w:sz w:val="${sz}"/>`:''}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
   const para=(runs,{after=120,before=0,ind}={})=>`<w:p><w:pPr><w:spacing w:before="${before}" w:after="${after}"/>${ind?`<w:ind w:left="${ind}" w:hanging="${ind}"/>`:''}</w:pPr>${runs}</w:p>`;
@@ -1004,6 +1050,7 @@ async function exportDocx(){
   body+=para(run(state.title||'Coded transcript',{font:'Georgia',sz:44,b:false}),{after:80});
   body+=para(run(`${state.lines.length} lines · coded ${new Date().toLocaleDateString()}`,{color:'6B665C',sz:18}),{after:240});
   body+=para(run('SIGHTLINE',{color:'6B665C',b:true,sz:18}),{after:60});
+  if(pic){ const cx=6248400, cy=Math.round(cx*pic.H/pic.W); body+=`<w:p><w:pPr><w:spacing w:before="0" w:after="160"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="Sightline"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="sightline.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rIdSight"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`; }
   for(const [st,n] of rows) body+=para(run(st.name,{color:st.text.slice(1),b:true})+run(`   ${n||'not yet'}`,{color:n?'23211D':'8A867E',i:!n}),{after:20});
   body+=para(run(`moves marked   ${rows.reduce((a,[,n])=>a+n,0)}`,{color:'6B665C',sz:18}),{after:240,before:60});
   body+=para(run('CLASSROOM MOMENTS',{color:'6B665C',b:true,sz:18}),{after:80});
@@ -1020,16 +1067,16 @@ async function exportDocx(){
   body+=para(run(COPYRIGHT,{color:'8A867E',sz:16}),{after:0});
   if(agreementLine()) body+=para(run(agreementLine(),{color:'8A867E',sz:16}),{after:0});
   const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1200" w:right="1200" w:bottom="1200" w:left="1200" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1200" w:right="1200" w:bottom="1200" w:left="1200" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
   const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`;
   const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`;
   const rels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
   const drels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
-  const zip=new JSZip(); zip.file('[Content_Types].xml',ct); zip.file('_rels/.rels',rels); zip.file('word/document.xml',doc); zip.file('word/styles.xml',styles); zip.file('word/_rels/document.xml.rels',drels);
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>${pic?'<Relationship Id="rIdSight" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/sightline.png"/>':''}</Relationships>`;
+  const zip=new JSZip(); zip.file('[Content_Types].xml',ct); zip.file('_rels/.rels',rels); zip.file('word/document.xml',doc); zip.file('word/styles.xml',styles); zip.file('word/_rels/document.xml.rels',drels); if(pic) zip.file('word/media/sightline.png', pic.blob);
   return zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
 }
 function richHtml(){
@@ -1082,7 +1129,9 @@ async function restore(){
 }
 
 /* ---------------- boot ---------------- */
+if(location.hash==='#debug') window.__asterine={exportDocx, sightSVG, sightPNG};
 state=sample(); renderKey(); renderTranscript(); restore();
+let rsz=null; window.addEventListener('resize', ()=>{ clearTimeout(rsz); rsz=setTimeout(renderTally, 150); });
 window.addEventListener('beforeunload', ()=>{ if(recording){ try{ rec.stop(); }catch(e){} } });
 })();
 </script>
