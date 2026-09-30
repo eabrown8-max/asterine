@@ -11,10 +11,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>
 :root{--paper:#E7E4DC;--surface:#F4F2ED;--raised:#FBFAF7;--line:#D5D0C4;--ink:#1F1B16;--soft:#6B5470;--mute:#9E8AA3;--accent:#1F5BB5;--peach:#A84A6E;
-  --s-modeling:#C8412B;--s-coaching:#2E7D5B;--s-scaffolding:#2F4B9E;--s-articulating:#9E6208;--s-reflecting:#6B4FA0;--s-exploring:#B8407A;
+  --s-modeling:#C8412B;--s-coaching:#2E7D5B;--s-scaffolding:#2F4B9E;--s-articulating:#9E6208;--s-reflecting:#6B4FA0;--s-exploring:#B8407A;--s-nonins:#3A342C;
   --serif:"Fraunces",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root{--paper:#17140F;--surface:#201C16;--raised:#27221B;--line:#3A3328;--ink:#EDE8DF;--soft:#CDB9D2;--mute:#95839A;--accent:#6FA3F0;--peach:#E08AAB;
-  --s-modeling:#E8705C;--s-coaching:#66C296;--s-scaffolding:#8FA6E8;--s-articulating:#E6A84A;--s-reflecting:#B39BE0;--s-exploring:#E27BB2}}
+  --s-modeling:#E8705C;--s-coaching:#66C296;--s-scaffolding:#8FA6E8;--s-articulating:#E6A84A;--s-reflecting:#B39BE0;--s-exploring:#E27BB2;--s-nonins:#A79A88}}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:980px;margin:0 auto;padding:22px 16px 48px}
@@ -37,6 +37,7 @@ h2::before{content:"";width:3px;height:12px;background:var(--accent);border-radi
 .seg[data-code]{font-weight:600}
 .seg[data-code="modeling"]{color:var(--s-modeling)}.seg[data-code="scaffolding"]{color:var(--s-scaffolding)}.seg[data-code="articulating"]{color:var(--s-articulating)}
 .seg[data-code="exploring"]{color:var(--s-exploring)}.seg[data-code="coaching"]{color:var(--s-coaching)}.seg[data-code="reflecting"]{color:var(--s-reflecting)}
+.seg[data-code="nonins"]{color:var(--s-nonins);font-weight:500;font-style:italic}
 .sightline svg{display:block;width:100%;height:auto}
 .sightline svg .lane-alt{fill:var(--ink);opacity:.04}
 .key{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
@@ -67,8 +68,9 @@ const STRATS = [
   {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A'},
   {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
   {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
+  {key:'nonins',       name:'Non-instructional', chip:'#3A342C', text:'#3A342C'},
 ];
-const DEFS={modeling:'Teacher artfully demonstrates artistic materials and processes.', scaffolding:'Teacher provides supports in student learning.', articulating:'Students communicate their understanding.', exploring:'Students use artistic materials in new ways.', coaching:'Teacher provides customized feedback during learning.', reflecting:'Students examine their process and product.'};
+const DEFS={modeling:'Teacher artfully demonstrates artistic materials and processes.', scaffolding:'Teacher provides supports in student learning.', articulating:'Students communicate their understanding.', exploring:'Students use artistic materials in new ways.', coaching:'Teacher provides customized feedback during learning.', reflecting:'Students examine their process and product.', nonins:'Time in the lesson that is not instruction: transitions, attendance, announcements, interruptions.'};
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
 const APP='Asterine', BRAND='Art of Teaching Studio', OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
 const COPYRIGHT=`© 2026 ${OWNER}. All rights reserved. ${APP}™ and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
@@ -99,7 +101,7 @@ function sightModel(){
 }
 function sightSVG(opts={}){
   const {marks, span, timed, clipsAt}=sightModel();
-  const ex=!!opts.export; const W=opts.width||1000; const narrow=W<640; const L=narrow?92:124, R=narrow?40:52, laneH=narrow?32:36, top=8, bottom=timed?30:22; const H=top+laneH*STRATS.length+bottom; const fs=narrow?12:13;
+  const ex=!!opts.export; const W=opts.width||1000; const narrow=W<640; const L=narrow?104:124, R=narrow?40:52, laneH=narrow?32:36, top=8, bottom=timed?30:22; const H=top+laneH*STRATS.length+bottom; const fs=narrow?12:13;
   const x=v=> L + (v/span)*(W-L-R);
   const ink = ex ? '#23211D' : 'var(--ink)', mute = ex ? '#9E8AA3' : 'var(--mute)', label = st => ex ? st.text : `var(--s-${st.key})`;
   let out=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"${ex?` width="${W}" height="${H}"`:''} role="img" aria-label="Sightline: Teaching Moves across the lesson" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">`;
@@ -107,7 +109,7 @@ function sightSVG(opts={}){
   STRATS.forEach((st,i)=>{
     const y=top+i*laneH; const ms=marks.filter(m=>m.code===st.key);
     if(i%2) out+=`<rect class="lane-alt" x="${L}" y="${y}" width="${W-L-R}" height="${laneH}" fill="${ex?'#000':ink}" opacity="0.04"/>`;
-    out+=`<text x="${L-12}" y="${y+laneH/2+4.5}" text-anchor="end" font-size="${fs}" font-weight="600" fill="${label(st)}">${st.name}</text>`;
+    out+=`<text x="${L-12}" y="${y+laneH/2+4.5}" text-anchor="end" font-size="${st.name.length>14?fs-2:fs}" font-weight="600" fill="${label(st)}">${st.name}</text>`;
     if(!ms.length) out+=`<text x="${L+10}" y="${y+laneH/2+4}" font-size="11.5" font-style="italic" fill="${mute}">not yet</text>`;
     for(const m of ms){ const x0=x(m.x0), w=Math.max(5, x(m.x1)-x0); out+=`<rect class="mark" x="${x0.toFixed(1)}" y="${y+9}" width="${w.toFixed(1)}" height="${laneH-18}" rx="3" fill="${st.chip}"><title>${esc((m.at?m.at+'  ':'')+(m.who?m.who+': ':'')+m.text)}</title></rect>`; }
     out+=`<text x="${W-R+12}" y="${y+laneH/2+4.5}" font-size="12.5" font-family="ui-monospace,Menlo,Consolas,monospace" fill="${ms.length?ink:mute}">${ms.length||''}</text>`;
