@@ -1237,8 +1237,10 @@ async function assignByVoice(c, segs, ends, audio, ref){
     if(k%6===0) wStatus('Matching the voices to yours... '+k+' of '+segs.length, k/segs.length);
   }
   if(!items.length) return null;
-  const {thr, gap}=splitThreshold(items.map(x=>x.sim));
-  const one = gap<0.08, mean=items.reduce((a,x)=>a+x.sim,0)/items.length;
+  const sims=items.map(x=>x.sim);
+  const {thr, gap}=splitThreshold(sims);
+  const one = gap<0.08, mean=sims.reduce((a,x)=>a+x,0)/sims.length;
+  const lo=Math.min(...sims), hi=Math.max(...sims);
   for(const it of items){ it.who = one ? (mean>=0.6?'T':'S') : (it.sim>=thr?'T':'S'); }
   const mine=state.lines.map((l,i)=>({l,i})).filter(x=>(x.l.c||0)===c && x.l.t!=null);
   let prev='T', t=0, s=0;
@@ -1247,7 +1249,7 @@ async function assignByVoice(c, segs, ends, audio, ref){
     const ov={T:0,S:0}; for(const it of items){ const o=Math.min(e0,it.e)-Math.max(s0,it.s); if(o>0) ov[it.who]+=o; }
     x.l.who = (ov.T||ov.S) ? (ov.T>=ov.S?'T':'S') : prev; prev=x.l.who; if(x.l.who==='T') t++; else s++;
   });
-  return {t, s, thr, one};
+  return {t, s, thr, one, turns:items.length, lo, hi, gap};
 }
 async function enrollVoice(){
   if(enrolling||wBusy) return;
@@ -1255,7 +1257,9 @@ async function enrollVoice(){
   enrolling=true; $('#btnEnroll').disabled=true; $('#btnWhisper').disabled=true; $('#btnSpeakers').disabled=true;
   let st=null;
   try{
-    st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+    // the same constraints the lesson records with: an embedding made through a different front-end does not
+    // compare with one made through this one, which collapsed the T/S split (found 2026-09-30)
+    st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}});
     const r=new MediaRecorder(st); const parts=[];
     r.addEventListener('dataavailable', e=>{ if(e.data&&e.data.size) parts.push(e.data); });
     const stopped=new Promise(res=>r.addEventListener('stop', res));
@@ -1265,7 +1269,8 @@ async function enrollVoice(){
     $('#voiceStatus').textContent='Learning your voice...';
     const audio=await decodeTo16k(new Blob(parts,{type:r.mimeType||'audio/webm'}));
     let e2=0, n=0; for(let i=0;i<audio.length;i+=16){ e2+=audio[i]*audio[i]; n++; }
-    if(Math.sqrt(e2/(n||1))<0.004){ $('#voiceStatus').textContent='That was too quiet to learn from. Try again, closer to the microphone.'; return; }
+    const rms=Math.sqrt(e2/(n||1));
+    if(rms<0.004){ $('#voiceStatus').textContent='That was too quiet to learn from (level '+rms.toFixed(4)+', needs 0.0040). Try again, closer to the microphone.'; return; }
     const v=await embed(audio);
     teacherVoice=v; try{ localStorage.setItem('cm-teacher-voice', JSON.stringify(Array.from(v))); }catch(e){}
     refreshVoiceUI(); wStatus('Your voice is saved. Transcribe + speakers will mark the lines that match it as T.'); toast('Saved, on this computer');
@@ -1324,8 +1329,12 @@ async function runWhisper(withWords){
     changed();
     const lines=state.lines.filter(l=>(l.c||0)===c).length;
     let tail;
-    if(byVoice) tail = byVoice.one ? (byVoice.t ? 'Every line matches your saved voice, so every line is T.' : 'No line matches your saved voice, so every line is S.') : byVoice.t+' lines match your saved voice (T); '+byVoice.s+' do not (S).';
-    else tail = (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'One voice found, so every line is T.');
+    if(byVoice){
+      tail = byVoice.one ? (byVoice.t ? 'Every line matches your saved voice, so every line is T.' : 'No line matches your saved voice, so every line is S.') : byVoice.t+' lines match your saved voice (T); '+byVoice.s+' do not (S).';
+      tail += ' ('+byVoice.turns+' speech turns, similarity to your voice '+byVoice.lo.toFixed(2)+' to '+byVoice.hi.toFixed(2)+', gap between the two groups '+byVoice.gap.toFixed(2)+(byVoice.one?' - under 0.08, so it was read as one voice' : ', split at '+byVoice.thr.toFixed(2))+'.)';
+    }
+    else tail = (teacherVoice ? 'No speech turns long enough to match against your saved voice, so ' : 'No saved voice, so ')
+      + (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'one voice found and every line is T. Save your voice, then Speakers only, to split them.');
     wStatus((withWords? lines+' lines written. ' : '') + tail);
     toast('Done, on this computer');
   }catch(err){
