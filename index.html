@@ -15,16 +15,15 @@
   database and no account system behind it, and it calls no AI API: no OpenAI, no Anthropic, no
   transcription service.
 
-  1. Recordings. Video and audio are captured with the browser's MediaRecorder and kept in the
-     browser's own storage (IndexedDB) on that device. Nothing is uploaded. The Owner cannot see it.
+  1. Media. Asterine does not record. The teacher brings in a video or audio file they recorded
+     elsewhere, and it is kept in the browser's own storage (IndexedDB) on that device. Nothing is
+     uploaded and the Owner cannot see it. The page never asks for the camera or the microphone.
   2. Transcription. "Transcribe + speakers" runs Whisper (openai/whisper, ONNX build) and a speaker
      segmentation model (pyannote, ONNX build) inside the browser with transformers.js. The audio is
      decoded and processed on the device. The model files are downloaded once from public content
      networks (jsdelivr.net, huggingface.co) and cached; no user data is sent to those networks.
-  3. Live draft (optional, off by default). While recording, the browser's built-in speech
-     recognition can show a rough running transcript. That feature streams audio to the browser
-     vendor's speech service (Google for Chrome and Edge, Apple for Safari) under that vendor's
-     terms. It is a switch under the record button; when off, no audio leaves the device.
+  3. No speech service. The page carries no live draft and no browser speech recognition, so no
+     audio is streamed to Google, Apple or anyone else at any point.
   4. Coding, tally, Sightline and every download (.docx, .html, .txt, .json, the recording) are
      produced in the browser and saved to the user's own computer.
   5. Fonts (fonts.googleapis.com) and one library (JSZip from cdnjs) load like any web page; they
@@ -113,15 +112,6 @@ h2.peach::before{background:var(--peach)}
 .stage .audio-mark{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--soft);font:13px/1.4 var(--sans);text-align:center;padding:0 18px}
 .stage.audio-only .audio-mark{display:flex}
 .audio-mark .glyph{color:var(--accent);opacity:.9}
-.audio-mark .bars{display:none;gap:4px;align-items:flex-end;height:22px}
-.stage.recording .audio-mark .bars{display:flex}
-.stage.recording .audio-mark .glyph{display:none}
-.audio-mark .bars i{width:4px;background:var(--accent);border-radius:2px;height:6px;transition:height .12s}
-.stage .badge{position:absolute;top:8px;left:8px;background:rgba(15,13,10,.7);color:#EDE8DF;font:600 11px/1 var(--mono);padding:6px 8px;border-radius:4px;letter-spacing:.08em;display:none;align-items:center;gap:6px}
-.stage.recording .badge{display:flex}
-.stage .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rec);animation:blink 1.1s infinite}
-@keyframes blink{50%{opacity:.25}}
-@media (prefers-reduced-motion:reduce){.stage .badge::before{animation:none}}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:8px 12px;font-weight:500;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{background:var(--raised)}
@@ -136,9 +126,6 @@ h2.peach::before{background:var(--peach)}
 .segmented button.on{background:var(--ink);color:var(--paper)}
 .note{font-size:12.5px;color:var(--soft);margin:8px 0 0;line-height:1.45}
 .note.warn{color:var(--peach)}
-.timer{font:500 20px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);margin-top:10px;display:flex;align-items:baseline;gap:10px}
-.timer small{font-size:11px;color:var(--soft);letter-spacing:.08em;text-transform:uppercase}
-.interim{font-size:13px;color:var(--soft);font-style:italic;min-height:1.4em;margin-top:6px}
 .player{display:flex;align-items:center;gap:8px;margin-top:10px}
 .player input[type=range]{flex:1;accent-color:var(--accent)}
 .player .t{font:12px var(--mono);font-variant-numeric:tabular-nums;color:var(--soft);min-width:8ch;text-align:right}
@@ -331,12 +318,12 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
     <div class="terms"><span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Local-First Privacy Guarantee</span>
       <ul>
         <li><b>100% on-device processing.</b> This application runs entirely within your web browser. Your classroom videos, audio recordings and generated transcripts are processed locally on your computer's hardware.</li>
-        <li><b>Zero cloud data exposure.</b> No media files or text are uploaded, streamed or transmitted to external servers or cloud APIs, and the developers cannot see, access or store your student data. The single optional exception is the live draft while recording, which is off unless you switch it on and uses your browser's own speech recognition.</li>
-        <li><b>School compliance.</b> Because data never leaves your device, this architecture minimizes FERPA storage risk. Teachers keep sole responsibility for making sure local recording follows their district's media guidelines.</li>
+        <li><b>Zero cloud data exposure.</b> No media files or text are uploaded, streamed or transmitted to external servers or cloud APIs, and the developers cannot see, access or store your student data.</li>
+        <li><b>School compliance.</b> Because data never leaves your device, this architecture minimizes FERPA storage risk. Teachers keep sole responsibility for making sure the lesson was recorded in line with their district's media guidelines.</li>
       </ul>
       <details><summary>Privacy &amp; Local Data Guarantee</summary>
         <p><b>1. Zero cloud data storage.</b> This application runs entirely in your browser. All classroom video, audio recordings, transcripts and files stay on your device. There is no server behind it: <span class="owner"></span> ("the Owner") does not collect, stream, store or have any access to your recordings or student data.</p>
-        <p><b>2. Transcription on your device.</b> Words and speakers are produced by models that run inside your browser on your own computer. Your audio is not sent to any transcription service, is never stored elsewhere, is never sold, and is never used to train any model. The one exception is the optional live draft while recording, which is off unless you turn it on: it uses your browser's own speech recognition (Google's in Chrome and Edge, Apple's in Safari) under that company's terms. If you choose to save your voice, the app keeps a short numeric fingerprint of it in this browser's storage, never the recording itself, so it can tell your lines from your students'. It stays on this device and you can delete it at any time.</p>
+        <p><b>2. Transcription on your device.</b> Words and speakers are produced by models that run inside your browser on your own computer. Your audio is not sent to any transcription service, is never stored elsewhere, is never sold, and is never used to train any model. If you choose to mark one line of your own talk as yours, the app keeps a short numeric fingerprint of that line in this browser's storage, never the audio itself, so it can tell your lines from your students'. It stays on this device and you can delete it at any time.</p>
         <p><b>3. Local authorization.</b> You are responsible for making sure that recording video or audio in your classroom follows your school district's media-consent and technology-use policies.</p>
       </details>
       <details><summary>Private Beta Confidentiality Terms</summary>
@@ -359,37 +346,30 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
     </div>
     <div class="meta" id="meta">no recording yet</div>
   </header>
-  <div class="banner" id="banner" hidden><span>Inside claude.ai the camera, microphone and file downloads are switched off. The full app, with recording and downloads, lives at the public link.</span><a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener">Open the full app &rarr;</a></div>
+  <div class="banner" id="banner" hidden><span>File downloads are switched off inside claude.ai. The full app, with downloads, lives at the public link.</span><a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener">Open the full app &rarr;</a></div>
 
   <div class="app">
     <!-- ================= LEFT: media ================= -->
     <aside>
       <section class="block">
-        <h2>Record</h2>
-        <div class="stage audio-only" id="stage">
-          <video id="video" playsinline></video>
-          <div class="audio-mark"><span class="glyph" id="glyph"></span><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="audioLabel">Camera preview appears here when you start</span></div>
-          <div class="badge">REC</div>
+        <h2>Bring a lesson in</h2>
+        <div class="filerow">
+          <label class="btn small" for="fileVideo">Video + audio<input type="file" id="fileVideo" accept="video/*"></label>
+          <label class="btn small" for="fileAudio">Audio<input type="file" id="fileAudio" accept="audio/*"></label>
+          <label class="btn small" for="fileText">Transcript (.srt .vtt .txt)<input type="file" id="fileText" accept=".srt,.vtt,.txt,text/plain"></label>
+          <label class="btn small" for="fileProj">Saved project (.json)<input type="file" id="fileProj" accept=".json,application/json"></label>
+          <button type="button" class="btn small" id="btnPasteOpen">Paste plain text</button>
         </div>
-        <div class="controls">
-          <div class="segmented" id="modeSeg">
-            <button type="button" data-mode="video" class="on" id="modeVideo">Video + audio</button>
-            <button type="button" data-mode="audio" id="modeAudio">Audio only</button>
-          </div>
-        </div>
-        <div class="controls">
-          <button type="button" class="btn rec" id="btnRec">● Start recording</button>
-          <button type="button" class="btn" id="btnStop" disabled>■ Stop</button>
-        </div>
-        <div class="timer"><span id="clock">0:00</span><small id="clockLabel">ready</small></div>
-        <label class="note" style="display:flex;gap:6px;align-items:flex-start;margin-top:8px" id="liveRow"><input type="checkbox" id="liveDraft"> <span>Show a rough live draft while recording (sends the audio to your browser's speech service - Google in Chrome, Apple in Safari). Off: nothing leaves this device.</span></label>
-        <div class="interim" id="interim"></div>
-        <p class="note warn" id="framedNote" hidden>Recording is off inside claude.ai. <a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
-        <p class="note" id="speechNote"></p>
+        <p class="note">Record the lesson on whatever you already use - a phone, a tablet, a camera, a meeting recording - then bring the file here. Several files in one session become one lesson, with continuous time. An .srt loads with its timestamps.</p>
+        <p class="note warn" id="framedNote" hidden>File downloads are off inside claude.ai. <a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
       </section>
 
       <section class="block" id="playBlock" hidden>
         <h2 class="peach">Play back</h2>
+        <div class="stage audio-only" id="stage">
+          <video id="video" playsinline></video>
+          <div class="audio-mark"><span class="glyph" id="glyph"></span><span id="audioLabel">Audio</span></div>
+        </div>
         <div class="player">
           <button type="button" class="btn small" id="btnPlay">▶</button>
           <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Position">
@@ -407,23 +387,12 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
           <button type="button" class="btn small ghost" id="btnSpeakers">Speakers only</button>
         </div>
         <div class="controls" id="voiceRow">
-          <button type="button" class="btn small" id="btnEnroll">Save my voice (10 s)</button>
+          <button type="button" class="btn small" id="btnEnroll">Use a line as my voice</button>
           <button type="button" class="btn small ghost" id="btnForgetVoice" hidden>Forget my voice</button>
           <span class="note" id="voiceStatus"></span>
         </div>
         <div class="wbar" id="wbar" hidden><i id="wFill"></i></div>
-        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. The recording keeps the whole room, so students across the room are heard, and Whisper writes the words, starting a new line wherever the voice changes. Save your voice once and every line that matches it is T; without a saved voice, the voice that talks most is T. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB; the voice model about 95 MB).</p>
-      </section>
-
-      <section class="block">
-        <h2>Or bring a file</h2>
-        <div class="filerow">
-          <label class="btn small" for="fileMedia">Video / audio file<input type="file" id="fileMedia" accept="video/*,audio/*"></label>
-          <label class="btn small" for="fileText">Transcript (.srt .vtt .txt)<input type="file" id="fileText" accept=".srt,.vtt,.txt,text/plain"></label>
-          <label class="btn small" for="fileProj">Saved project (.json)<input type="file" id="fileProj" accept=".json,application/json"></label>
-          <button type="button" class="btn small" id="btnPasteOpen">Paste plain text</button>
-        </div>
-        <p class="note">An .srt made on your own computer loads with its timestamps.</p>
+        <p class="note" id="wStatus">Runs in your browser; the audio never leaves this computer. Whisper writes the words and starts a new line wherever the voice changes, then the speech-turn model tells the voices apart: the voice with the most talk time is T. If that is the wrong one, pick a line you spoke with Use a line as my voice and the speakers are worked out again from it. First run downloads the models once (Quick 45 MB, Better 80 MB, Best 250 MB; the voice model about 95 MB).</p>
       </section>
 
     </aside>
@@ -529,7 +498,7 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
           <button type="button" class="btn small" id="dlHtml">Web page, in color (.html)</button>
           <button type="button" class="btn small" id="dlTxt">Plain text, no color (.txt)</button>
           <button type="button" class="btn small" id="dlJson">Project to reopen (.json)</button>
-          <button type="button" class="btn small" id="dlMedia" disabled>Recording (.webm)</button>
+          <button type="button" class="btn small" id="dlMedia" disabled>Media file</button>
         </div>
         <p class="note">Share as link puts the words and colors in a link (not the recording); it opens in the app, behind the beta gate. Share read-only link opens a viewing page with no code needed - for a principal or a room. Copy in color pastes into Word, Docs or Slides.</p>
       </section>
@@ -880,7 +849,7 @@ function renderLine(i){
 }
 function renderTranscript(){
   const tr=$('#transcript'); tr.innerHTML='';
-  if(!state.lines.length){ tr.innerHTML='<div class="empty">Nothing here yet. Start a recording, bring in a file on the left, or paste plain text below.</div>'; }
+  if(!state.lines.length){ tr.innerHTML='<div class="empty">Nothing here yet. Bring in a video, audio or transcript file on the left, or paste plain text below.</div>'; }
   else { let lastC=-1; state.lines.forEach((l,i)=>{ const c=l.c||0; if(state.clips.length>1 && c!==lastC){ lastC=c; const m=document.createElement('div'); m.className='clipmark'; m.innerHTML=`<span>${esc(clipName(c))}</span><span class="n">starts ${fmt(clipOffset(c))}</span>`; tr.appendChild(m); } tr.appendChild(renderLine(i)); }); }
   $('#sheetTitle').textContent=state.title||'Transcript';
   $('#sampleTag').hidden=!state.sample;
@@ -924,7 +893,7 @@ function currentSelectionRange(){
   return {a,b};
 }
 $('#transcript').addEventListener('mouseup', e=>{
-  if(editing!==null) return;
+  if(editing!==null || pickingVoice) return;
   const range=currentSelectionRange();
   if(range){ if(active){ applyCode(range.a, range.b, active==='clear'?null:active); window.getSelection().removeAllRanges(); } else { pending=range; } return; }
   const line=e.target.closest('.line'); if(!line) return;
@@ -934,10 +903,11 @@ $('#transcript').addEventListener('mouseup', e=>{
   else { document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); pending={a:{li,off:0},b:{li,off:len}}; line.classList.add('pending'); toast('Now pick a Teaching Move', 1500); }
 });
 document.addEventListener('selectionchange', ()=>{ // touch selections land here
-  if(editing!==null) return; const r=currentSelectionRange(); if(r) pending=r;
+  if(editing!==null || pickingVoice) return; const r=currentSelectionRange(); if(r) pending=r;
 });
 $('#transcript').addEventListener('click', e=>{
   const line=e.target.closest('.line'); if(!line) return; const li=+line.dataset.i;
+  if(pickingVoice){ e.preventDefault(); e.stopPropagation(); voiceFromLine(li); return; }
   if(e.target.closest('.t')){ seek(state.lines[li].t, state.lines[li].c||0); return; }
   if(e.target.closest('.who')){ const l=state.lines[li]; l.who=WHO[(WHO.indexOf(l.who)+1)%WHO.length]; rerenderLine(li); scheduleSave(); return; }
   if(e.target.closest('.ed')){ const txt=line.querySelector('.txt'); if(editing===null) startEdit(li, txt); return; }
@@ -975,13 +945,12 @@ document.addEventListener('keydown', e=>{
   else if(e.key==='0'){ pick('clear'); }
   else if(/^[tsaTSA]$/.test(e.key)){
     const w = e.key.toLowerCase()==='t' ? 'T' : e.key.toLowerCase()==='s' ? 'S' : 'Ss';
-    if(recording){ setLiveWho(w); return; }
     let lis=[]; if(pending){ for(let i=Math.min(pending.a.li,pending.b.li); i<=Math.max(pending.a.li,pending.b.li); i++) lis.push(i); } else { const now=$('.line.now'); if(now) lis=[+now.dataset.i]; }
     if(!lis.length){ toast('Click a line first, then press T, S or A', 1600); return; }
     lis.forEach(i=>{ state.lines[i].who=w; }); changed(); toast(lis.length+(lis.length>1?' lines':' line')+' set to '+w, 1200);
   }
   else if(e.key==='Escape'){ active=null; pending=null; updateKey(); document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); }
-  else if(e.key===' ' && mediaAny() && !recording){ e.preventDefault(); togglePlay(); }
+  else if(e.key===' ' && mediaAny()){ e.preventDefault(); togglePlay(); }
 });
 $('#btnClearCodes').addEventListener('click', async ()=>{ if(!state.lines.length) return; if(!await ask('Remove every color from this transcript? The words stay.', 'Uncode all')) return; for(const l of state.lines){ l.segs=[{text:lineText(l), code:null}]; } changed(); toast('All colors removed'); });
 $('#btnJoin').addEventListener('click', ()=>{
@@ -1040,99 +1009,15 @@ $('#btnPasteUse').addEventListener('click', async ()=>{
   lines.forEach(l=>l.c=Math.max(0,clips.length-1)); if(append) state.lines=state.lines.concat(lines); else { state.lines=lines; if(!mediaAny()) state.title='Pasted text ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
   state.sample=false; $('#pasteBox').value=''; $('#paste').hidden=true; changed(); toast(lines.length+' lines ready to code');
 });
-$('#btnNew').addEventListener('click', async ()=>{ if(recording){ toast('Stop the recording first', 1800); return; } if(state.lines.length && !state.sample && !await ask('Start a new session? The current transcript and recording are cleared from this browser. Download the project first if you want to keep it.', 'New session')) return; resetAll(); toast('New session'); });
-function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; setTimeout(idleLabel, 0); state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#dlMedia').disabled=true; $('#clock').textContent='0:00'; $('#clockLabel').textContent='ready'; changed(); saveMedia(); }
+$('#btnNew').addEventListener('click', async ()=>{ if(state.lines.length && !state.sample && !await ask('Start a new session? The current transcript and media are cleared from this browser. Download the project first if you want to keep it.', 'New session')) return; resetAll(); toast('New session'); });
+function resetAll(){ stopPlaybackMedia(); clips=[]; cur=-1; state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; active=null; pending=null; updateKey(); $('#playBlock').hidden=true; $('#whisperBlock').hidden=true; $('#dlMedia').disabled=true; changed(); saveMedia(); }
 
-/* ---------------- recording ---------------- */
-let liveWho='T';
-function setLiveWho(w){ liveWho=w; }
-let mode='video', stream=null, rec=null, chunks=[], recording=false, t0=0, clockTimer=null, sr=null, srSeen={}, analyser=null, raf=null, recClip=0, recType='';
-const GLYPH={ cam:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>', mic:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>' };
-function idleLabel(){ if(recording || clips.length) return; $('#glyph').innerHTML = mode==='video' ? GLYPH.cam : GLYPH.mic; $('#audioLabel').textContent = mode==='video' ? 'Camera preview appears here when you start' : 'Audio only - no camera'; }
-$('#modeSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||recording) return; mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); idleLabel(); });
-idleLabel();
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const speechOK = !!SR;
-$('#speechNote').textContent = speechOK ? 'After recording, use Transcribe + speakers: it runs on this computer.' : 'After recording, use Transcribe + speakers: it runs on this computer. (This browser has no live draft.)';
-if(!speechOK){ $('#liveDraft').disabled=true; }
-let liveOn=false; try{ liveOn = localStorage.getItem('cm-live-draft')==='1'; }catch(e){}
-$('#liveDraft').checked = liveOn && speechOK;
-$('#liveDraft').addEventListener('change', e=>{ liveOn=e.target.checked; try{ localStorage.setItem('cm-live-draft', liveOn?'1':'0'); }catch(x){} });
-const elapsed = () => (performance.now()-t0)/1000;
-
-const policyAllows=(()=>{ try{ const pp=document.permissionsPolicy||document.featurePolicy; if(pp && pp.allowsFeature) return pp.allowsFeature('microphone') || pp.allowsFeature('camera'); }catch(e){} return null; })();
-if(!framed && policyAllows===false){ $('#framedNote').hidden=false; $('#framedNote').innerHTML='This site does not allow the camera or microphone, so recording cannot run here. Open a local copy of this page to record, or bring a recording and transcript in below.'; }
+/* ---------------- what the claude.ai frame allows ---------------- */
+// Asterine does not record. The lesson is recorded on whatever the teacher already uses and brought
+// in as a file, so the page asks for no camera and no microphone at all (set 2026-10-02 at Beth's word:
+// "rather than trying to record in the app"). Downloads are still off inside the claude.ai frame.
+const GLYPH={ mic:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>' };
 if(framed){ $('#framedNote').hidden=false; $('#banner').hidden=false; }
-$('#btnRec').addEventListener('click', startRecording);
-$('#btnStop').addEventListener('click', stopRecording);
-async function startRecording(){
-  if(recording) return;
-  if(state.sample) { state={title:'Transcript', lines:[], createdAt:Date.now(), mediaName:null, sample:false, clips:[]}; clips=[]; cur=-1; }
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({ audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}, video: mode==='video' ? {width:{ideal:1280}, height:{ideal:720}, facingMode:'user'} : false });
-  }catch(err){
-    const msg = err && (err.name==='NotAllowedError'||err.name==='SecurityError') ? (framed ? 'Recording is off inside claude.ai. Use the full app at the public link (banner at the top).' : (policyAllows===false ? 'This site does not allow the camera or microphone. Open a local copy of the page to record.' : 'The camera or microphone was blocked. Click the camera icon in the address bar, allow it for this site, and try again.')) : 'Could not start the ' + (mode==='video'?'camera':'microphone') + ': ' + (err&&err.message||err);
-    toast(msg, 6000); if(framed){ $('#framedNote').hidden=false; $('#framedNote').scrollIntoView({block:'nearest'}); } return;
-  }
-  stopPlaybackMedia();
-  const v=$('#video'); v.srcObject=stream; v.muted=true; v.controls=false; v.play().catch(()=>{});
-  $('#stage').classList.toggle('audio-only', mode!=='video'); $('#stage').classList.add('recording'); $('#audioLabel').textContent='Recording audio';
-  meter(stream);
-  const cands = mode==='video' ? ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'] : ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
-  recType = cands.find(c=>window.MediaRecorder && MediaRecorder.isTypeSupported(c)) || '';
-  chunks=[];
-  try{ rec = recType ? new MediaRecorder(stream,{mimeType:recType}) : new MediaRecorder(stream); }catch(err){ toast('Recording is not supported in this browser: '+err.message, 5000); stream.getTracks().forEach(t=>t.stop()); return; }
-  recType = rec.mimeType || recType; recClip = clips.length;
-  rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
-  rec.onstop = onRecStopped;
-  rec.start(1000);
-  recording=true; t0=performance.now(); if(!state.createdAt) state.createdAt=Date.now(); state.mediaName=null; if(!clips.length) state.title='Recording ' + new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-  $('#btnRec').disabled=true; $('#btnStop').disabled=false; $('#clockLabel').textContent='recording'; $('#playBlock').hidden=true; setLiveWho('T');
-  clockTimer=setInterval(()=>{ $('#clock').textContent=fmt(elapsed()); }, 250);
-  renderTranscript(); if(liveOn && speechOK) startSpeech(); else $('#interim').textContent='Recording. Transcribe on this computer when you stop.';
-}
-function stopRecording(){ if(!recording) return; recording=false; clearInterval(clockTimer); stopSpeech(); try{ rec.stop(); }catch(e){ onRecStopped(); } }
-function onRecStopped(){
-  stream && stream.getTracks().forEach(t=>t.stop()); stream=null; stopMeter();
-  const blob = new Blob(chunks, {type: recType || 'video/webm'}); chunks=[];
-  const dur = Math.max(0.5, elapsed());
-  clips[recClip] = {blob, type: blob.type}; state.clips[recClip] = {dur, name:'Recording '+(recClip+1)};
-  $('#stage').classList.remove('recording'); $('#btnRec').disabled=false; $('#btnStop').disabled=true; $('#clockLabel').textContent='recorded'; $('#interim').textContent=''; if(!(liveOn && speechOK)) setTimeout(()=>{ $('#whisperBlock').scrollIntoView({block:'nearest'}); toast('Now click Transcribe + speakers', 2600); }, 400);
-  loadClip(recClip); saveMedia(); renderTranscript(); scheduleSave(); toast((recClip?'Recording '+(recClip+1)+' added':'Recording saved in this browser')+'. Now code the transcript.', 2600);
-}
-function startSpeech(){
-  if(!SR) return;
-  sr = new SR(); sr.continuous=true; sr.interimResults=true; sr.lang='en-US'; sr.maxAlternatives=1; srSeen={};
-  sr.onstart=()=>{ srSeen={}; };
-  sr.onresult = e=>{
-    let interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const r=e.results[i]; if(srSeen[i]==null) srSeen[i]=Math.max(0, elapsed()-1.2);
-      if(r.isFinal){ const txt=(r[0].transcript||'').trim(); if(txt && !srSeen['done'+i]){ srSeen['done'+i]=true; addLive(srSeen[i], txt); } }
-      else interim += r[0].transcript;
-    }
-    $('#interim').textContent=interim;
-  };
-  sr.onerror = e=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ $('#speechNote').textContent='Speech recognition was blocked, so this recording has no live transcript. You can type lines in by hand or bring a transcript file.'; $('#speechNote').classList.add('warn'); sr=null; } };
-  sr.onend = ()=>{ if(recording && sr){ try{ sr.start(); }catch(e){} } };
-  try{ sr.start(); }catch(e){}
-}
-function stopSpeech(){ if(sr){ const s=sr; sr=null; try{ s.stop(); }catch(e){} } }
-function addLive(t, text){
-  const cap = text.charAt(0).toUpperCase()+text.slice(1); const punct=/[.?!]$/.test(cap)?cap:cap+'.';
-  state.lines.push({t, c:recClip, who:liveWho, segs:[{text:punct, code:null}]});
-  const tr=$('#transcript'); if(state.lines.length===1) tr.innerHTML=''; if(state.clips.length>1 || recClip>0){ const prev=state.lines[state.lines.length-2]; if(!prev || (prev.c||0)!==recClip){ const m=document.createElement('div'); m.className='clipmark'; m.innerHTML=`<span>${esc('Recording '+(recClip+1))}</span><span class="n">starts ${fmt(clipOffset(recClip))}</span>`; tr.appendChild(m); } } tr.appendChild(renderLine(state.lines.length-1));
-  tr.lastElementChild.scrollIntoView({block:'nearest'}); renderMeta(); scheduleSave();
-}
-function meter(s){
-  try{
-    const ctx=new (window.AudioContext||window.webkitAudioContext)(); const src=ctx.createMediaStreamSource(s); analyser=ctx.createAnalyser(); analyser.fftSize=64; src.connect(analyser);
-    const data=new Uint8Array(analyser.frequencyBinCount); const bars=[...$('#bars').children];
-    const tick=()=>{ analyser.getByteFrequencyData(data); bars.forEach((b,i)=>{ const v=data[Math.floor(i*data.length/bars.length)]||0; b.style.height=(6+v/255*22)+'px'; }); raf=requestAnimationFrame(tick); };
-    tick(); meter.ctx=ctx;
-  }catch(e){}
-}
-function stopMeter(){ cancelAnimationFrame(raf); raf=null; try{ meter.ctx && meter.ctx.close(); }catch(e){} [...$('#bars').children].forEach(b=>b.style.height='8px'); }
 
 /* ---------------- playback ---------------- */
 const v=$('#video');
@@ -1172,7 +1057,7 @@ v.addEventListener('timeupdate', ()=>{
 $('#scrub').addEventListener('input', e=>{ const d=isFinite(v.duration)?v.duration:0; if(d) v.currentTime=e.target.value/1000*d; });
 
 /* ---------------- whisper, in the browser ---------------- */
-let wModel=(navigator.gpu?'small':'base'), wBusy=false, wPipes={}, wLib=null, wDia=null, wXv=null, teacherVoice=null, enrolling=false;
+let wModel=(navigator.gpu?'small':'base'), wBusy=false, wPipes={}, wLib=null, wDia=null, wXv=null, teacherVoice=null, enrolling=false, pickingVoice=false;
 document.querySelectorAll('#wModel button').forEach(x=>x.classList.toggle('on', x.dataset.m===wModel));
 $('#wModel').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||wBusy) return; wModel=b.dataset.m; document.querySelectorAll('#wModel button').forEach(x=>x.classList.toggle('on',x===b)); });
 function wStatus(msg, frac){ $('#wStatus').textContent=msg; const bar=$('#wbar'); if(frac==null){ bar.hidden=true; } else { bar.hidden=false; $('#wFill').style.width=Math.round(frac*100)+'%'; } }
@@ -1236,10 +1121,11 @@ function assignSpeakers(c, segs, ends){
 }
 // ---- Teacher voiceprint: saved on this device, never the recording ----
 function loadVoice(){ try{ const v=JSON.parse(localStorage.getItem('cm-teacher-voice')||'null'); if(Array.isArray(v)&&v.length>16) return Float32Array.from(v); }catch(e){} return null; }
+function voiceIdle(){ return teacherVoice ? 'Your voice is saved on this computer. Lines that match it are T.' : 'Pick a line you spoke and the app learns your voice from it.'; }
 function refreshVoiceUI(){
   const has=!!teacherVoice; $('#btnForgetVoice').hidden=!has;
-  $('#btnEnroll').textContent = has ? 'Re-record my voice' : 'Save my voice (10 s)';
-  $('#voiceStatus').textContent = has ? 'Your voice is saved on this computer. Lines that match it are T.' : 'Save your voice once so the app knows which lines are yours.';
+  $('#btnEnroll').textContent = has ? 'Use a different line' : 'Use a line as my voice';
+  $('#voiceStatus').textContent = voiceIdle();
 }
 async function getXVector(){
   if(wXv) return wXv;
@@ -1287,39 +1173,55 @@ async function assignByVoice(c, segs, ends, audio, ref){
   });
   return {t, s, thr, one, turns:items.length, lo, hi, gap};
 }
-async function enrollVoice(){
-  if(enrolling||wBusy) return;
-  if(framed){ toast('Open the app in its own tab to use the microphone', 2600); return; }
+// The voiceprint is learned from a line of the lesson itself, not from the microphone: the app records
+// nothing. The embedding comes from the same decoded 16 kHz audio the speech turns come from, so it
+// compares like for like - the old ten-second microphone clip went through a different audio front-end,
+// which collapsed the T/S split (found 2026-09-30). Spec E3.
+function voiceSpan(li){
+  const l=state.lines[li]; if(!l || l.t==null) return null;
+  const c=l.c||0;
+  const after=state.lines.slice(li+1).find(x=>(x.c||0)===c && x.t!=null);
+  let s0=Math.max(0,l.t), e0=(after && after.t>l.t) ? after.t : l.t+4;
+  if(e0-s0<1.5) e0=s0+1.5;
+  if(e0-s0>10) e0=s0+10;
+  return {c, s:s0, e:e0};
+}
+function armVoicePick(){
+  if(wBusy||enrolling) return;
+  pickingVoice=!pickingVoice;
+  $('#btnEnroll').classList.toggle('primary', pickingVoice);
+  $('#voiceStatus').textContent = pickingVoice ? 'Click a line in the transcript that you spoke.' : voiceIdle();
+  if(pickingVoice){ active=null; updateKey(); clearPick(); }
+}
+async function voiceFromLine(li){
+  pickingVoice=false; $('#btnEnroll').classList.remove('primary');
+  const span=voiceSpan(li);
+  if(!span){ $('#voiceStatus').textContent='That line has no time on it, so there is no audio behind it. Transcribe the recording first.'; return; }
+  const clip=clips[span.c];
+  if(!clip){ $('#voiceStatus').textContent='The recording that line came from is not loaded.'; return; }
   enrolling=true; $('#btnEnroll').disabled=true; $('#btnWhisper').disabled=true; $('#btnSpeakers').disabled=true;
-  let st=null;
+  let ok=false;
   try{
-    // the same constraints the lesson records with: an embedding made through a different front-end does not
-    // compare with one made through this one, which collapsed the T/S split (found 2026-09-30)
-    st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}});
-    const r=new MediaRecorder(st); const parts=[];
-    r.addEventListener('dataavailable', e=>{ if(e.data&&e.data.size) parts.push(e.data); });
-    const stopped=new Promise(res=>r.addEventListener('stop', res));
-    r.start();
-    for(let i=10;i>0;i--){ $('#voiceStatus').textContent='Recording. Talk the way you teach... '+i; await new Promise(res=>setTimeout(res,1000)); }
-    r.stop(); await stopped; st.getTracks().forEach(tr=>tr.stop()); st=null;
-    $('#voiceStatus').textContent='Learning your voice...';
-    const audio=await decodeTo16k(new Blob(parts,{type:r.mimeType||'audio/webm'}));
-    let e2=0, n=0; for(let i=0;i<audio.length;i+=16){ e2+=audio[i]*audio[i]; n++; }
+    $('#voiceStatus').textContent='Learning your voice from that line...';
+    const audio=await decodeTo16k(clip.blob);
+    const a=audio.slice(Math.floor(span.s*16000), Math.floor(span.e*16000));
+    let e2=0, n=0; for(let i=0;i<a.length;i+=16){ e2+=a[i]*a[i]; n++; }
     const rms=Math.sqrt(e2/(n||1));
-    if(rms<0.004){ $('#voiceStatus').textContent='That was too quiet to learn from (level '+rms.toFixed(4)+', needs 0.0040). Try again, closer to the microphone.'; return; }
-    const v=await embed(audio);
-    teacherVoice=v; try{ localStorage.setItem('cm-teacher-voice', JSON.stringify(Array.from(v))); }catch(e){}
-    refreshVoiceUI(); wStatus('Your voice is saved. Transcribe + speakers will mark the lines that match it as T.'); toast('Saved, on this computer');
-  }catch(err){ console.error(err); $('#voiceStatus').textContent='Could not record: '+(err&&err.message||err); }
-  finally{ if(st) st.getTracks().forEach(tr=>tr.stop()); enrolling=false; $('#btnEnroll').disabled=false; $('#btnWhisper').disabled=wBusy; $('#btnSpeakers').disabled=wBusy; }
+    if(rms<0.004){ $('#voiceStatus').textContent='That line is too quiet to learn from (level '+rms.toFixed(4)+', needs 0.0040). Pick a longer or louder line of your own talk.'; return; }
+    teacherVoice=await embed(a);
+    try{ localStorage.setItem('cm-teacher-voice', JSON.stringify(Array.from(teacherVoice))); }catch(e){}
+    refreshVoiceUI(); toast('Saved, on this computer'); ok=true;
+  }catch(err){ console.error(err); $('#voiceStatus').textContent='Could not learn that line: '+(err&&err.message||err); }
+  finally{ enrolling=false; $('#btnEnroll').disabled=false; $('#btnWhisper').disabled=wBusy; $('#btnSpeakers').disabled=wBusy; }
+  if(ok) await runWhisper(false);
 }
 function forgetVoice(){ teacherVoice=null; try{ localStorage.removeItem('cm-teacher-voice'); }catch(e){} refreshVoiceUI(); toast('Forgotten'); }
 async function runWhisper(withWords){
-  if(wBusy) return; const clip=clips[cur]; if(!clip){ toast('Load or record something first', 1600); return; }
+  if(wBusy) return; const clip=clips[cur]; if(!clip){ toast('Bring in a video or audio file first', 1600); return; }
   const c=cur; const mine=state.lines.filter(l=>(l.c||0)===c).length;
   if(withWords && mine && !await ask('Replace the '+mine+' lines for '+clipName(c)+' with Whisper\'s transcript? Colors on those lines are cleared.', 'Replace')) return;
   if(!withWords && !mine){ toast('No lines for this recording yet - use Transcribe + speakers', 2200); return; }
-  wBusy=true; $('#btnWhisper').disabled=true; $('#btnSpeakers').disabled=true; $('#btnRec').disabled=true;
+  wBusy=true; $('#btnWhisper').disabled=true; $('#btnSpeakers').disabled=true;
   try{
     wStatus('Reading the audio...', 0);
     const audio=await decodeTo16k(clip.blob); const secs=audio.length/16000;
@@ -1370,12 +1272,12 @@ async function runWhisper(withWords){
       tail += ' ('+byVoice.turns+' speech turns, similarity to your voice '+byVoice.lo.toFixed(2)+' to '+byVoice.hi.toFixed(2)+', gap between the two groups '+byVoice.gap.toFixed(2)+(byVoice.one?' - under 0.08, so it was read as one voice' : ', split at '+byVoice.thr.toFixed(2))+'.)';
     }
     else tail = (teacherVoice ? 'No speech turns long enough to match against your saved voice, so ' : 'No saved voice, so ')
-      + (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'one voice found and every line is T. Save your voice, then Speakers only, to split them.');
+      + (n>1 ? n+' voices found: the one that talks most is T, the others S.' : 'one voice found and every line is T. Pick a line you spoke with Use a line as my voice to split them.');
     wStatus((withWords? lines+' lines written. ' : '') + tail);
     toast('Done, on this computer');
   }catch(err){
     console.error(err); wStatus('This could not run here: '+(err&&err.message||err)+'. Chrome or Edge on a laptop is the surest bet.');
-  }finally{ wBusy=false; $('#btnWhisper').disabled=false; $('#btnSpeakers').disabled=false; $('#btnRec').disabled=recording; }
+  }finally{ wBusy=false; $('#btnWhisper').disabled=false; $('#btnSpeakers').disabled=false; }
 }
 $('#btnWhisper').addEventListener('click', ()=>runWhisper(true));
 $('#btnSpeakers').addEventListener('click', ()=>runWhisper(false));
@@ -1543,12 +1445,14 @@ $('#fileTally').addEventListener('change', async e=>{ const f=e.target.files[0];
   catch(err){ toast('That is not an Asterine tally file.', 3000); } });
 $('#cpBlock').hidden = framed;
 if(tally.pairs.length){ $('#calStatus').textContent += tallyLine(); } refreshTallyUI(); calNow();
-$('#btnEnroll').addEventListener('click', enrollVoice);
+$('#btnEnroll').addEventListener('click', armVoicePick);
 $('#btnForgetVoice').addEventListener('click', forgetVoice);
 teacherVoice=loadVoice(); refreshVoiceUI();
 
 /* ---------------- files in ---------------- */
-$('#fileMedia').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; if(recording) return; if(state.sample){ state.lines=[]; state.sample=false; state.clips=[]; clips=[]; cur=-1; state.title=f.name.replace(/\.[^.]+$/,''); } const i=clips.length; clips.push({blob:f, type:f.type}); state.clips[i]={dur:0, name:f.name.replace(/\.[^.]+$/,'')}; state.mediaName=f.name; loadClip(i); saveMedia(); changed(); toast((i?'Added as recording '+(i+1):'Media loaded')+'. Bring a transcript, or type lines in.'); e.target.value=''; });
+function bringMedia(e){ const f=e.target.files[0]; if(!f) return; if(state.sample){ state.lines=[]; state.sample=false; state.clips=[]; clips=[]; cur=-1; state.title=f.name.replace(/\.[^.]+$/,''); } const i=clips.length; clips.push({blob:f, type:f.type}); state.clips[i]={dur:0, name:f.name.replace(/\.[^.]+$/,'')}; state.mediaName=f.name; loadClip(i); saveMedia(); changed(); toast((i?'Added as recording '+(i+1):'Media loaded')+'. Now Transcribe + speakers, or bring a transcript.'); e.target.value=''; }
+$('#fileVideo').addEventListener('change', bringMedia);
+$('#fileAudio').addEventListener('change', bringMedia);
 $('#fileText').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; const text=await f.text(); const lines=parseTranscript(text, f.name); if(!lines.length){ toast('No lines found in that file', 2500); return; } if(state.lines.length && !state.sample && !await ask('Replace the current transcript with this file?', 'Replace')) return; lines.forEach(l=>l.c=Math.max(0,clips.length-1)); state.lines=lines; state.sample=false; if(!mediaAny()) state.title=f.name.replace(/\.[^.]+$/,''); changed(); toast(lines.length+' lines loaded'); e.target.value=''; });
 $('#fileProj').addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; try{ const p=JSON.parse(await f.text()); if(!p||!Array.isArray(p.lines)) throw 0; state={clips:Array.isArray(p.clips)?p.clips.map(c=>({dur:+c.dur||0, name:String(c.name||'')})):[], title:p.title||'Transcript', lines:p.lines.map(l=>({t:(l.t==null?null:+l.t||0), c:+l.c||0, who:l.who||'', segs:(l.segs||[]).map(s=>({text:String(s.text||''), code:BY[s.code]?s.code:null}))})), createdAt:p.createdAt||Date.now(), mediaName:p.mediaName||null, sample:false}; state.lines.forEach(normalize); changed(); toast('Project loaded' + (p.mediaName?' - bring in '+p.mediaName+' to play it back':'')); }catch(err){ toast('That is not a project file from this page', 2500); } e.target.value=''; });
 function parseTranscript(text, name, opts={}){
