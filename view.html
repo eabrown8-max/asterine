@@ -11,10 +11,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>
 :root{--paper:#E7E4DC;--surface:#F4F2ED;--raised:#FBFAF7;--line:#D5D0C4;--ink:#1F1B16;--soft:#6B5470;--mute:#9E8AA3;--accent:#1F5BB5;--peach:#A84A6E;
-  --s-modeling:#C8412B;--s-coaching:#2E7D5B;--s-scaffolding:#2F4B9E;--s-articulating:#9E6208;--s-reflecting:#6B4FA0;--s-exploring:#B8407A;--s-nonins:#3A342C;
+  --s-modeling:#AC362C;--s-coaching:#0A7545;--s-scaffolding:#075FD6;--s-articulating:#8A5D03;--s-reflecting:#693597;--s-exploring:#B12E88;--s-nonins:#3A342C;
   --serif:"Fraunces",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root{--paper:#17140F;--surface:#201C16;--raised:#27221B;--line:#3A3328;--ink:#EDE8DF;--soft:#CDB9D2;--mute:#95839A;--accent:#6FA3F0;--peach:#E08AAB;
-  --s-modeling:#E8705C;--s-coaching:#66C296;--s-scaffolding:#8FA6E8;--s-articulating:#E6A84A;--s-reflecting:#B39BE0;--s-exploring:#E27BB2;--s-nonins:#A79A88}}
+  --s-modeling:#B53F02;--s-coaching:#479668;--s-scaffolding:#3A91FE;--s-articulating:#BB8922;--s-reflecting:#7A47BE;--s-exploring:#BD5EA0;--s-nonins:#A79A88}}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:980px;margin:0 auto;padding:22px 16px 48px}
@@ -62,12 +62,12 @@ h2::before{content:"";width:3px;height:12px;background:var(--accent);border-radi
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const STRATS = [
-  {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B'},
-  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E'},
-  {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208'},
-  {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A'},
-  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B'},
-  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0'},
+  {key:'modeling',     name:'Modeling',     chip:'#AC362C', text:'#AC362C'},
+  {key:'scaffolding',  name:'Scaffolding',  chip:'#1769E0', text:'#075FD6'},
+  {key:'articulating', name:'Articulation', chip:'#B07809', text:'#8A5D03'},
+  {key:'exploring',    name:'Exploration',  chip:'#C6439A', text:'#B12E88'},
+  {key:'coaching',     name:'Coaching',     chip:'#009B5B', text:'#0A7545'},
+  {key:'reflecting',   name:'Reflection',   chip:'#693597', text:'#693597'},
   {key:'nonins',       name:'Non-instructional', chip:'#3A342C', text:'#3A342C'},
 ];
 const DEFS={modeling:'Teacher artfully demonstrates artistic materials and processes.', scaffolding:'Teacher provides supports in student learning.', articulating:'Students communicate their understanding.', exploring:'Students use artistic materials in new ways.', coaching:'Teacher provides customized feedback during learning.', reflecting:'Students examine their process and product.', nonins:'Time in the lesson that is not instruction: transitions, attendance, announcements, interruptions.'};

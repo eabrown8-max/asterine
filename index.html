@@ -42,10 +42,10 @@
   --ink:#1F1B16; --soft:#6B5470; --mute:#9E8AA3;   /* plum-gray: warmer and brighter than silver, no copper (Beth, 2026-09-27) */
   --accent:#1F5BB5; --accent-ink:#FFFFFF; --peach:#A84A6E;   /* sapphire and rose - Beth's jewel tones */
   --rec:#A8342A;
-  --s-modeling:#C8412B; --s-scaffolding:#2F4B9E; --s-articulating:#9E6208; --s-exploring:#B8407A;
-  --s-coaching:#2E7D5B; --s-reflecting:#6B4FA0; --s-nonins:#3A342C;
-  --chip-modeling:#C8412B; --chip-scaffolding:#2F4B9E; --chip-articulating:#D98B1F; --chip-exploring:#B8407A;
-  --chip-coaching:#2E7D5B; --chip-reflecting:#6B4FA0; --chip-nonins:#3A342C;
+  --s-modeling:#AC362C; --s-scaffolding:#075FD6; --s-articulating:#8A5D03; --s-exploring:#B12E88;
+  --s-coaching:#0A7545; --s-reflecting:#693597; --s-nonins:#3A342C;
+  --chip-modeling:#AC362C; --chip-scaffolding:#1769E0; --chip-articulating:#B07809; --chip-exploring:#C6439A;
+  --chip-coaching:#009B5B; --chip-reflecting:#693597; --chip-nonins:#3A342C;
   --sel:rgba(31,91,181,.16); --now:rgba(168,74,110,.12);
   --serif:"Fraunces",Georgia,"Times New Roman",serif;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
@@ -57,8 +57,8 @@
     --paper:#17140F; --surface:#201C16; --raised:#27221B; --line:#3A3328;
     --ink:#EDE8DF; --soft:#CDB9D2; --mute:#95839A;
     --accent:#6FA3F0; --accent-ink:#17140F; --peach:#E08AAB; --rec:#E0665A;
-    --s-modeling:#E8705C; --s-scaffolding:#8FA6E8; --s-articulating:#E6A84A; --s-exploring:#E27BB2;
-    --s-coaching:#66C296; --s-reflecting:#B39BE0; --s-nonins:#A79A88; --chip-nonins:#4A4238;
+    --s-modeling:#B53F02; --s-scaffolding:#3A91FE; --s-articulating:#BB8922; --s-exploring:#BD5EA0;
+    --s-coaching:#479668; --s-reflecting:#7A47BE; --s-nonins:#A79A88; --chip-nonins:#4A4238;
     --sel:rgba(111,163,240,.22); --now:rgba(224,138,171,.16);
     color-scheme:dark;
   }
@@ -67,8 +67,8 @@
   --paper:#17140F; --surface:#201C16; --raised:#27221B; --line:#3A3328;
   --ink:#EDE8DF; --soft:#CDB9D2; --mute:#95839A;
   --accent:#6FA3F0; --accent-ink:#17140F; --peach:#E08AAB; --rec:#E0665A;
-  --s-modeling:#E8705C; --s-scaffolding:#8FA6E8; --s-articulating:#E6A84A; --s-exploring:#E27BB2;
-  --s-coaching:#66C296; --s-reflecting:#B39BE0; --s-nonins:#A79A88; --chip-nonins:#4A4238;
+  --s-modeling:#B53F02; --s-scaffolding:#3A91FE; --s-articulating:#BB8922; --s-exploring:#BD5EA0;
+  --s-coaching:#479668; --s-reflecting:#7A47BE; --s-nonins:#A79A88; --chip-nonins:#4A4238;
   --sel:rgba(111,163,240,.22); --now:rgba(224,138,171,.16);
   color-scheme:dark;
 }
@@ -535,12 +535,12 @@ document.title=APP+' \u2122'; $('#brandLine').textContent=BRAND+' \u00b7 '+STAGE
 (function(){ const a=agreement(); $('#whoIn').textContent = a ? `Signed in as ${a.name} (beta terms accepted ${new Date(a.when).toLocaleDateString()}).` : ''; })();
 $('#signOut').addEventListener('click', e=>{ e.preventDefault(); try{ localStorage.removeItem('cm-beta-ok'); localStorage.removeItem('cm-beta-agreement'); }catch(x){} location.reload(); });
 const STRATS = [   // Learning Moves in the AEI deck's order (Beth, 2026-09-27); noun forms from the brand block; definitions from the deck; Fading is in the deck only
-  {key:'modeling',     name:'Modeling',     chip:'#C8412B', text:'#C8412B', def:'Teacher artfully demonstrates artistic materials and processes.'},
-  {key:'scaffolding',  name:'Scaffolding',  chip:'#2F4B9E', text:'#2F4B9E', def:'Teacher provides supports in student learning.'},
-  {key:'articulating', name:'Articulation', chip:'#D98B1F', text:'#9E6208', def:'Students communicate their understanding.'},
-  {key:'exploring',    name:'Exploration',  chip:'#B8407A', text:'#B8407A', def:'Students use artistic materials in new ways.'},
-  {key:'coaching',     name:'Coaching',     chip:'#2E7D5B', text:'#2E7D5B', def:'Teacher provides customized feedback during learning.'},
-  {key:'reflecting',   name:'Reflection',   chip:'#6B4FA0', text:'#6B4FA0', def:'Students examine their process and product.'},
+  {key:'modeling',     name:'Modeling',     chip:'#AC362C', text:'#AC362C', def:'Teacher artfully demonstrates artistic materials and processes.'},
+  {key:'scaffolding',  name:'Scaffolding',  chip:'#1769E0', text:'#075FD6', def:'Teacher provides supports in student learning.'},
+  {key:'articulating', name:'Articulation', chip:'#B07809', text:'#8A5D03', def:'Students communicate their understanding.'},
+  {key:'exploring',    name:'Exploration',  chip:'#C6439A', text:'#B12E88', def:'Students use artistic materials in new ways.'},
+  {key:'coaching',     name:'Coaching',     chip:'#009B5B', text:'#0A7545', def:'Teacher provides customized feedback during learning.'},
+  {key:'reflecting',   name:'Reflection',   chip:'#693597', text:'#693597', def:'Students examine their process and product.'},
   {key:'nonins',       name:'Non-instructional', chip:'#3A342C', text:'#3A342C', def:'Time in the lesson that is not instruction: transitions, attendance, announcements, interruptions.'},
 ];
 const MOVES = STRATS.filter(s => s.key!=='nonins');   // the six Learning Moves; Counterpoint reads against these only
