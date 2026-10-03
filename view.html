@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- (c) 2026 Dr. Elizabeth Brown and Dr. Diana Hawley. All rights reserved. Asterine(TM) and its associated color-coded instructional analysis workflows are trademarks of Dr. Elizabeth Brown and Dr. Diana Hawley. Private beta. -->
+<!-- (c) 2026 Dr. Elizabeth Brown and Dr. Diana Hawley. All rights reserved. Asterine(TM), Sightline(TM) and their associated color-coded instructional analysis workflows are trademarks of Dr. Elizabeth Brown and Dr. Diana Hawley. Private beta. -->
 <!-- Read-only viewer: shows a transcript carried inside the link (#z=...). No recording, no coding tools, no gate. Nothing is stored anywhere. -->
 <html lang="en">
 <head>
@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
-<title>Asterine · shared transcript</title>
+<title>Sightline · shared transcript</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
 <style>
 :root{--paper:#E7E4DC;--surface:#F4F2ED;--raised:#FBFAF7;--line:#D5D0C4;--ink:#1F1B16;--soft:#6B5470;--mute:#9E8AA3;--accent:#1F5BB5;--peach:#A84A6E;
@@ -49,9 +49,9 @@ h2::before{content:"";width:3px;height:12px;background:var(--accent);border-radi
 </head>
 <body>
 <div class="wrap">
-  <p class="eyebrow">Art of Teaching Studio · Asterine<sup>™</sup> · shared, read-only</p>
+  <p class="eyebrow">Asterine · Sightline<sup>™</sup> · shared, read-only</p>
   <h1 id="title">Shared transcript</h1>
-  <p class="tagline">See the art in your teaching.</p>
+  <p class="tagline">Illuminating the art of teaching.</p>
   <div class="meta" id="meta"></div>
   <div id="body"><div class="empty">Opening the shared transcript…</div></div>
   <p class="legal" id="legal"></p>
@@ -72,7 +72,7 @@ const STRATS = [
 ];
 const DEFS={modeling:'Teacher artfully demonstrates artistic materials and processes.', scaffolding:'Teacher provides supports in student learning.', articulating:'Students communicate their understanding.', exploring:'Students use artistic materials in new ways.', coaching:'Teacher provides customized feedback during learning.', reflecting:'Students examine their process and product.', nonins:'Time in the lesson that is not instruction: transitions, attendance, announcements, interruptions.'};
 const BY = Object.fromEntries(STRATS.map(s => [s.key, s]));
-const APP='Asterine', BRAND='Art of Teaching Studio', OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
+const APP='Sightline', BRAND='Asterine', OWNER='Dr. Elizabeth Brown and Dr. Diana Hawley';
 const COPYRIGHT=`© 2026 ${OWNER}. All rights reserved. ${APP}™ and its associated color-coded instructional analysis workflows are trademarks of ${OWNER}.`;
 $('#legal').textContent=COPYRIGHT;
 let state={title:'', lines:[], clips:[]};
@@ -104,7 +104,7 @@ function sightSVG(opts={}){
   const ex=!!opts.export; const W=opts.width||1000; const narrow=W<640; const L=narrow?104:124, R=narrow?40:52, laneH=narrow?32:36, top=8, bottom=timed?30:22; const H=top+laneH*STRATS.length+bottom; const fs=narrow?12:13;
   const x=v=> L + (v/span)*(W-L-R);
   const ink = ex ? '#23211D' : 'var(--ink)', mute = ex ? '#9E8AA3' : 'var(--mute)', label = st => ex ? st.text : `var(--s-${st.key})`;
-  let out=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"${ex?` width="${W}" height="${H}"`:''} role="img" aria-label="Sightline: Teaching Moves across the lesson" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">`;
+  let out=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"${ex?` width="${W}" height="${H}"`:''} role="img" aria-label="Whole lesson: Learning Moves across the lesson" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">`;
   if(ex) out+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#FDFCF9"/>`;
   STRATS.forEach((st,i)=>{
     const y=top+i*laneH; const ms=marks.filter(m=>m.code===st.key);
@@ -125,23 +125,23 @@ function sightSVG(opts={}){
 function unb64u(str){ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const bin=atob(str); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
 async function inflate(bytes){ const ds=new DecompressionStream('deflate-raw'); const w=ds.writable.getWriter(); w.write(bytes); w.close(); return new Uint8Array(await new Response(ds.readable).arrayBuffer()); }
 function render(){
-  document.title=(state.title||'Shared transcript')+' · Asterine';
+  document.title=(state.title||'Shared transcript')+' · Sightline';
   $('#title').textContent=state.title||'Shared transcript';
   const timed=state.lines.filter(l=>l.t!=null);
-  $('#meta').textContent=`${state.lines.length} lines · ${timed.length?fmt(absT(timed[timed.length-1])):'–'} · shared from Asterine · read-only`;
+  $('#meta').textContent=`${state.lines.length} lines · ${timed.length?fmt(absT(timed[timed.length-1])):'–'} · shared from Sightline · read-only`;
   let lines=''; let lastC=-1;
   state.lines.forEach(l=>{ const c=l.c||0; if(state.clips.length>1 && c!==lastC){ lastC=c; lines+=`<div class="clipmark"><span>${esc(clipName(c))}</span><span class="n">starts ${fmt(clipOffset(c))}</span></div>`; }
     lines+=`<div class="line"><span class="t">${fmt(absT(l))}</span><span class="who">${l.who?esc(l.who)+':':'·'}</span><span class="txt">${l.segs.map(sg=>`<span class="seg"${sg.code?` data-code="${sg.code}"`:''}>${esc(sg.text)}</span>`).join('')}</span></div>`; });
   const counts=Object.fromEntries(STRATS.map(s=>[s.key,0])); for(const l of state.lines) for(const sg of l.segs) if(sg.code&&sg.text.trim()) counts[sg.code]++;
   const box=document.createElement('div');
   box.innerHTML=`<div class="sheet"><h2>Classroom Moments</h2>${lines||'<div class="empty">No lines.</div>'}</div>
-    <div class="sheet"><h2>Sightline</h2><div class="sightline" id="sightline"></div><div class="key">${STRATS.map(st=>`<span class="chip" style="background:${st.chip}" title="${esc(DEFS[st.key])}">${st.name} ${counts[st.key]||'· not yet'}</span>`).join('')}</div><p class="note">${STRATS.map(st=>`<b style="color:var(--s-${st.key})">${st.name}</b> ${esc(DEFS[st.key])}`).join(' · ')}</p></div>`;
+    <div class="sheet"><h2>Whole lesson</h2><div class="sightline" id="sightline"></div><div class="key">${STRATS.map(st=>`<span class="chip" style="background:${st.chip}" title="${esc(DEFS[st.key])}">${st.name} ${counts[st.key]||'· not yet'}</span>`).join('')}</div><p class="note">${STRATS.map(st=>`<b style="color:var(--s-${st.key})">${st.name}</b> ${esc(DEFS[st.key])}`).join(' · ')}</p></div>`;
   $('#body').replaceChildren(box);
   const sl=$('#sightline'); const cw=Math.max(340, Math.round(sl.clientWidth||0) || 900); sl.innerHTML=sightSVG({width:cw});
 }
 async function open(){
   const m=(location.hash||'').match(/^#([zj])=([A-Za-z0-9\-_]+)$/);
-  if(!m){ $('#body').innerHTML='<div class="empty">This page shows a transcript shared from Asterine. Open it from a shared link.</div>'; return; }
+  if(!m){ $('#body').innerHTML='<div class="empty">This page shows a transcript shared from Sightline. Open it from a shared link.</div>'; return; }
   try{ let bytes=unb64u(m[2]); if(m[1]==='z') bytes=await inflate(bytes); const p=JSON.parse(new TextDecoder().decode(bytes));
     state={ title:p.title||'Shared transcript', clips:(p.clips||[]).map(c=>({dur:+c.dur||0, name:String(c.name||'')})), lines:(p.lines||[]).map(l=>({t:(l.t==null?null:+l.t), c:+l.c||0, who:l.w||'', segs:(l.s||[]).map(x=>({text:String(x[0]||''), code:BY[x[1]]?x[1]:null}))})) };
     render();
