@@ -868,7 +868,7 @@ function pick(code){
   if(pending){ applyCode(pending.a, pending.b, code==='clear'?null:code); pending=null; window.getSelection()?.removeAllRanges(); }
   active = (active===code) ? null : code;   // click the active one again to put the tool down
   updateKey();
-  if(active) toast(active==='clear' ? 'Non-instructional: click a line or drag over words' : BY[active].name + ': click a line or drag over words', 1600);
+  if(active) toast(active==='clear' ? 'Uncode: the color comes off what you click' : BY[active].name + ' \u2014 ' + BY[active].def, 2800);   // the pop-up carries the definition, not instructions (Beth, 2026-10-03)
 }
 function pointOf(node, offset){
   const line = (node.nodeType===1?node:node.parentNode).closest?.('.line'); if(!line) return null;
@@ -900,7 +900,7 @@ $('#transcript').addEventListener('mouseup', e=>{
   if(e.target.closest('.t')||e.target.closest('.who')||e.target.closest('.ops')) return;
   const li=+line.dataset.i, len=lineText(state.lines[li]).length;
   if(active){ applyCode({li,off:0},{li,off:len}, active==='clear'?null:active); }
-  else { document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); pending={a:{li,off:0},b:{li,off:len}}; line.classList.add('pending'); toast('Now pick a Learning Move', 1500); }
+  else { document.querySelectorAll('.line.pending').forEach(x=>x.classList.remove('pending')); pending={a:{li,off:0},b:{li,off:len}}; line.classList.add('pending'); }
 });
 document.addEventListener('selectionchange', ()=>{ // touch selections land here
   if(editing!==null || pickingVoice) return; const r=currentSelectionRange(); if(r) pending=r;
