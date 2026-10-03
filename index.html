@@ -151,7 +151,7 @@ h2.peach::before{background:var(--peach)}
 h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:22px 0 6px}
 
 /* tally */
-.sightsheet{margin-top:20px;min-height:0}
+.sightsheet{margin:0 0 20px;min-height:0}
 .sightline{width:100%}
 .sightline svg{display:block;width:100%;height:auto}
 .sightline svg .lane-alt{fill:var(--ink);opacity:.04}
@@ -399,6 +399,12 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
 
     <!-- ================= CENTER: transcript ================= -->
     <main>
+      <div class="sheet sightsheet">
+        <h2>Whole lesson</h2>
+        <p class="note" style="margin:0 0 12px">The lesson, left to right. One lane per Learning Move; each mark is a coded moment where it happened. Hover a mark to read it.</p>
+        <div class="sightline" id="sightline"></div>
+        <div class="tally" id="tally"></div>
+      </div>
       <div class="sheet">
         <h2 class="peach">Classroom Moments</h2>
         <div class="sheet-head">
@@ -436,12 +442,6 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
         </div>
       </div>
       <p class="foot">Click a line or drag over words to color them. ✎ edits a line (Enter splits it, Esc cancels), × deletes it. Click the speaker to change it, the time to play from there. Saves in this browser as you go.</p>
-      <div class="sheet sightsheet">
-        <h2>Whole lesson</h2>
-        <p class="note" style="margin:0 0 12px">The lesson, left to right. One lane per Learning Move; each mark is a coded moment where it happened. Hover a mark to read it.</p>
-        <div class="sightline" id="sightline"></div>
-        <div class="tally" id="tally"></div>
-      </div>
     </main>
 
     <!-- ================= RIGHT: key ================= -->
