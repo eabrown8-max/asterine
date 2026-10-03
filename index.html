@@ -346,7 +346,7 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
     </div>
     <div class="meta" id="meta">no recording yet</div>
   </header>
-  <div class="banner" id="banner" hidden><span>File downloads are switched off inside claude.ai. The full app, with downloads, lives at the public link.</span><a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener">Open the full app &rarr;</a></div>
+  <div class="banner" id="banner" hidden><span>File downloads are switched off inside claude.ai. The full app, with downloads, lives at the public link.</span><a href="https://sightline.asterine.studio/" target="_blank" rel="noopener">Open the full app &rarr;</a></div>
 
   <div class="app">
     <!-- ================= LEFT: media ================= -->
@@ -361,7 +361,7 @@ h3.subhead{font:600 11.5px/1 var(--sans);letter-spacing:.12em;text-transform:upp
           <button type="button" class="btn small" id="btnPasteOpen">Paste plain text</button>
         </div>
         <p class="note">Record the lesson on whatever you already use - a phone, a tablet, a camera, a meeting recording - then bring the file here. Several files in one session become one lesson, with continuous time. An .srt loads with its timestamps.</p>
-        <p class="note warn" id="framedNote" hidden>File downloads are off inside claude.ai. <a href="https://artofteachingstudio.com/asterine/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
+        <p class="note warn" id="framedNote" hidden>File downloads are off inside claude.ai. <a href="https://sightline.asterine.studio/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open the full app &rarr;</a></p>
       </section>
 
       <section class="block" id="playBlock" hidden>
@@ -1562,8 +1562,8 @@ $('#copyRich').addEventListener('click', async ()=>{
 });
 $('#dlDocx').addEventListener('click', async ()=>{ try{ const b=await exportDocx(); await saveFile(stem()+'-coded.docx', b); }catch(err){ toast('Could not build the Word file: '+(err&&err.message||err), 4000); } });
 /* ---- share as link: the coded transcript travels inside the address; nothing is stored anywhere ---- */
-const SHARE_BASE='https://artofteachingstudio.com/asterine/';
-const VIEW_BASE='https://artofteachingstudio.com/asterine/view.html';
+const SHARE_BASE='https://sightline.asterine.studio/';
+const VIEW_BASE='https://sightline.asterine.studio/view.html';
 function b64u(bytes){ let s=''; for(const b of bytes) s+=String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function unb64u(str){ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; const bin=atob(str); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
 async function deflate(bytes){ if(!window.CompressionStream) return null; const cs=new CompressionStream('deflate-raw'); const w=cs.writable.getWriter(); w.write(bytes); w.close(); return new Uint8Array(await new Response(cs.readable).arrayBuffer()); }
